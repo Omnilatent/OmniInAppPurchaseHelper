@@ -6,9 +6,8 @@
     "description": "Helper for Google Billing IAP",
     "keywords": ["iap"],
     "category": "Wrapper",
-    "dependencies": {
-        {
-            "com.unity.purchasing": "2.0.6"
-        }
+    "dependencies": 
+    {
+        "com.unity.purchasing": "2.0.6"
     }
 }
