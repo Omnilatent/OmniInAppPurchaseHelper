@@ -1,8 +1,9 @@
 ﻿public partial class PayoutType
 {
+    [System.Serializable]
     public struct Type
     {
-        private int _Value;
+        [UnityEngine.SerializeField] private int _Value;
 
         public static implicit operator Type(int value)
         {

@@ -6,10 +6,11 @@ using UnityEngine;
 public class ProductPriceText : MonoBehaviour
 {
     [SerializeField] TMP_Text textPrice;
+    [SerializeField] IAPProductData productData;
 
     private void Start()
     {
-        textPrice.text = InAppPurchaseHelper.instance.GetPriceString(IAPProcessor.remove_ads);
+        textPrice.text = InAppPurchaseHelper.instance.GetPriceString(productData.ProductId);
     }
 
     private void Reset()
