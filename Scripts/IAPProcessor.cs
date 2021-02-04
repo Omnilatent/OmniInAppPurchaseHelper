@@ -3,7 +3,33 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Purchasing;
 
-public enum PayoutType { Unset = 0, Diamond = 1, Hint = 2, Other = 3 }
+public partial class PayoutType
+{
+    public struct Type
+    {
+        private int _Value;
+
+        public static implicit operator Type(int value)
+        {
+            return new Type { _Value = value };
+        }
+
+        public static implicit operator int(Type value)
+        {
+            return value._Value;
+        }
+
+        public override string ToString()
+        {
+            return _Value.ToString();
+        }
+    }
+    public static readonly Type Currency = 1;
+    public static readonly Type Hint = 2;
+    public static readonly Type Other = 3;
+    public static readonly Type NoAds = 4;
+}
+
 public class IAPProcessor
 {
     public const string dataFolder = "ProductData";
@@ -53,26 +79,6 @@ public class IAPProcessor
         }
         else
         {
-            foreach (var payout in productData.payouts)
-            {
-                switch (payout.type)
-                {
-                    case PayoutType.Diamond:
-                        //User.AddGems(payout.quantity);
-                        break;
-                    case PayoutType.Hint:
-                        //User.AddHint(payout.quantity);
-                        break;
-                    case PayoutType.Other:
-                        if (InAppPurchaseHelper.CompareProductId(remove_ads, args))
-                        {
-                            PlayerPrefs.SetInt(PREF_NO_ADS, 1);
-                            PlayerPrefs.Save();
-                            SetupNoAds();
-                        }
-                        break;
-                }
-            }
         }
         return isValidPurchase;
         //SS.View.Manager.Add(PopupController.POPUP_SCENE_NAME, new PopupData(PopupType.OK, msg));

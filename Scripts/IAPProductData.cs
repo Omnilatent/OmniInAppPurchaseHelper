@@ -16,5 +16,5 @@ public class IAPProductData : ScriptableObject
 public class Payout
 {
     public int quantity;
-    public PayoutType type;
+    public PayoutType.Type type;
 }

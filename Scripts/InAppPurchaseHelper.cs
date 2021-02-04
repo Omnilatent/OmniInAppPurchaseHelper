@@ -15,6 +15,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     public delegate void PurchaseCompleteDelegate(bool success, PurchaseProcessingResult result, string productID);
     PurchaseCompleteDelegate onPurchaseComplete;
+    public static PurchaseCompleteDelegate persistentOnPurchaseCompleteCallback;
 
     // Product identifiers for all products capable of being purchased: 
     // "convenience" general identifiers for use with Purchasing, and their store-specific identifier 
@@ -305,6 +306,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         {
             onPurchaseComplete.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
             onPurchaseComplete = null;
+            //persistentOnPurchaseCompleteCallback?.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
         }
         /*// A consumable product has been purchased by this user.
         if (CompareProductId(productIDDiamond1, args))
