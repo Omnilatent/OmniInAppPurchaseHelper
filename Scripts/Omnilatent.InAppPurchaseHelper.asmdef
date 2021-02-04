@@ -1,0 +1,17 @@
+{
+    "name": "Omnilatent.InAppPurchaseHelper",
+    "references": [
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:0c7d005e9daee4d46a29c18d1cf468e5",
+        "GUID:72c3a9d5ec3690f40ace57923705863f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
