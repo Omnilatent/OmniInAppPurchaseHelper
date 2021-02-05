@@ -10,12 +10,14 @@ using System.Linq;
 
 public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 {
+    [SerializeField] IAPProductData[] removeAdsProducts; //Products to check receipt on initialized 
+
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
     private static IExtensionProvider m_StoreExtensionProvider; // The store-specific Purchasing subsystems.
 
     public delegate void PurchaseCompleteDelegate(bool success, PurchaseProcessingResult result, string productID);
-    PurchaseCompleteDelegate onPurchaseComplete;
-    public static PurchaseCompleteDelegate persistentOnPurchaseCompleteCallback;
+    PurchaseCompleteDelegate onNextPurchaseComplete; //This handle only get callback once, will be removed after callback
+    public static PurchaseCompleteDelegate persistentOnPurchaseCompleteCallback; //always callback on purchase
 
     // Product identifiers for all products capable of being purchased: 
     // "convenience" general identifiers for use with Purchasing, and their store-specific identifier 
@@ -172,7 +174,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
             if (product != null && product.availableToPurchase)
             {
-                onPurchaseComplete = purchaseCompleteDelegate;
+                onNextPurchaseComplete = purchaseCompleteDelegate;
                 Debug.Log(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
                 m_StoreController.InitiatePurchase(product);
             }
@@ -288,6 +290,21 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         // Store specific subsystem, for accessing device-specific store features.
         m_StoreExtensionProvider = extensions;
 
+        //check if user has purchased any remove ads product
+        bool hasRemovedAds = false;
+        foreach (var item in removeAdsProducts)
+        {
+            foreach (var payout in item.payouts)
+            {
+                if (payout.type == PayoutType.NoAds && InAppPurchaseHelper.CheckReceipt(item.ProductId))
+                {
+                    hasRemovedAds = true;
+                    break;
+                }
+            }
+            if (hasRemovedAds) break;
+        }
+        PlayerPrefs.SetInt(IAPProcessor.PREF_NO_ADS, hasRemovedAds ? 1 : 0);
         IAPProcessor.Init();
     }
 
@@ -302,10 +319,12 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     {
         bool isValidPurchase = IAPProcessor.OnPurchase(args);
         //if isValidPurchase was false, you should display an error message
-        if (onPurchaseComplete != null)
+
+        persistentOnPurchaseCompleteCallback?.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
+        if (onNextPurchaseComplete != null)
         {
-            onPurchaseComplete.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
-            onPurchaseComplete = null;
+            onNextPurchaseComplete.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
+            onNextPurchaseComplete = null;
             //persistentOnPurchaseCompleteCallback?.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
         }
         /*// A consumable product has been purchased by this user.

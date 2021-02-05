@@ -6,19 +6,12 @@ using UnityEngine.Purchasing;
 public class IAPProcessor
 {
     public const string dataFolder = "ProductData";
-    public const string remove_ads = "removeads.forever";
-    public const string get_10_hints = "get10hints";
     public const string PREF_NO_ADS = "PURCHASE_ADS";
     
     static bool hasAddedNoAdsDelegate;
 
     public static void Init()
     {
-        if (InAppPurchaseHelper.CheckReceipt(remove_ads))
-        {
-            PlayerPrefs.SetInt(PREF_NO_ADS, 1);
-        }
-        else PlayerPrefs.SetInt(PREF_NO_ADS, 0);
         SetupNoAds();
     }
 
