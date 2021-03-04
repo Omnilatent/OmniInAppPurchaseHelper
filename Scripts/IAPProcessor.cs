@@ -19,8 +19,8 @@ public class IAPProcessor
     {
         if (!hasAddedNoAdsDelegate)
         {
-            AdsManager.instance.noAds -= IAPProcessor.CheckNoAds;
-            AdsManager.instance.noAds += IAPProcessor.CheckNoAds;
+            AdsManager.Instance.noAds -= IAPProcessor.CheckNoAds;
+            AdsManager.Instance.noAds += IAPProcessor.CheckNoAds;
             hasAddedNoAdsDelegate = true;
         }
     }
