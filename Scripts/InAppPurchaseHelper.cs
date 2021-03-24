@@ -292,6 +292,10 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
         //check if user has purchased any remove ads product
         bool hasRemovedAds = false;
+        if(removeAdsProducts.Length == 0)
+        {
+            Debug.Log("removeAdsProducts doesn't have any products. If you have remove ads product, add it to the list");
+        }
         foreach (var item in removeAdsProducts)
         {
             foreach (var payout in item.payouts)
