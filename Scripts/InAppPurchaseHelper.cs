@@ -181,11 +181,15 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             else
             {
                 LogError($"BuyProductID: {productId} FAIL. Not purchasing product, either is not found or is not available for purchase");
+                purchaseCompleteDelegate?.Invoke(false, PurchaseProcessingResult.Complete, productId);
+                persistentOnPurchaseCompleteCallback?.Invoke(false, PurchaseProcessingResult.Complete, productId);
             }
         }
         else
         {
             LogError($"BuyProductID {productId} FAIL. Not initialized.");
+            purchaseCompleteDelegate?.Invoke(false, PurchaseProcessingResult.Complete, productId);
+            persistentOnPurchaseCompleteCallback?.Invoke(false, PurchaseProcessingResult.Complete, productId);
         }
     }
 

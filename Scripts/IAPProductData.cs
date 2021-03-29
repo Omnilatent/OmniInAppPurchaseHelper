@@ -28,7 +28,7 @@ public class IAPProductData : ScriptableObject
             }
             else
             {
-                return $"${defaultPrice}";
+                return $"${defaultPrice:n2}";
             }
         }
     }
