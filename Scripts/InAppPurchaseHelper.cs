@@ -200,14 +200,14 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             }
             else
             {
-                string msg = $"BuyProductID: {productId} FAIL. Not purchasing product, either is not found or is not available for purchase";
+                string msg = $"BuyProduct {productId} failed. Product is either not found or not available for purchase";
                 PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.ProductUnavailable);
                 OnPurchaseFailed(purchaseResultArgs);
             }
         }
         else
         {
-            string msg = $"BuyProductID {productId} FAIL. Not initialized.";
+            string msg = $"BuyProduct {productId} failed. IAP was not initialized. Please check internet connection and restart the app.";
             PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.PurchasingUnavailable);
             OnPurchaseFailed(purchaseResultArgs);
         }
