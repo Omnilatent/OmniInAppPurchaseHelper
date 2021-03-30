@@ -7,6 +7,26 @@ using Google.Play.Billing;
 #endif
 using UnityEngine.Purchasing.Security;
 using System.Linq;
+using Omnilatent.InAppPurchase;
+
+namespace Omnilatent.InAppPurchase
+{
+    public class PurchaseResultArgs
+    {
+        public string productID;
+        public string message;
+        public bool isSuccess;
+        public PurchaseFailureReason? reason;
+
+        public PurchaseResultArgs(string productID, bool isSuccess, string message = "", PurchaseFailureReason? reason = null)
+        {
+            this.productID = productID;
+            this.message = message;
+            this.isSuccess = isSuccess;
+            this.reason = reason;
+        }
+    }
+}
 
 public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 {
@@ -15,7 +35,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
     private static IExtensionProvider m_StoreExtensionProvider; // The store-specific Purchasing subsystems.
 
-    public delegate void PurchaseCompleteDelegate(bool success, PurchaseProcessingResult result, string productID);
+    public delegate void PurchaseCompleteDelegate(PurchaseResultArgs purchaseResultArgs);
     PurchaseCompleteDelegate onNextPurchaseComplete; //This handle only get callback once, will be removed after callback
     public static PurchaseCompleteDelegate persistentOnPurchaseCompleteCallback; //always callback on purchase
 
@@ -172,24 +192,24 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         {
             Product product = m_StoreController.products.WithID(productId);
 
+            onNextPurchaseComplete = purchaseCompleteDelegate;
             if (product != null && product.availableToPurchase)
             {
-                onNextPurchaseComplete = purchaseCompleteDelegate;
                 Debug.Log(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
                 m_StoreController.InitiatePurchase(product);
             }
             else
             {
-                LogError($"BuyProductID: {productId} FAIL. Not purchasing product, either is not found or is not available for purchase");
-                purchaseCompleteDelegate?.Invoke(false, PurchaseProcessingResult.Complete, productId);
-                persistentOnPurchaseCompleteCallback?.Invoke(false, PurchaseProcessingResult.Complete, productId);
+                string msg = $"BuyProductID: {productId} FAIL. Not purchasing product, either is not found or is not available for purchase";
+                PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.ProductUnavailable);
+                OnPurchaseFailed(purchaseResultArgs);
             }
         }
         else
         {
-            LogError($"BuyProductID {productId} FAIL. Not initialized.");
-            purchaseCompleteDelegate?.Invoke(false, PurchaseProcessingResult.Complete, productId);
-            persistentOnPurchaseCompleteCallback?.Invoke(false, PurchaseProcessingResult.Complete, productId);
+            string msg = $"BuyProductID {productId} FAIL. Not initialized.";
+            PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.PurchasingUnavailable);
+            OnPurchaseFailed(purchaseResultArgs);
         }
     }
 
@@ -296,7 +316,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
         //check if user has purchased any remove ads product
         bool hasRemovedAds = false;
-        if(removeAdsProducts.Length == 0)
+        if (removeAdsProducts.Length == 0)
         {
             Debug.Log("removeAdsProducts doesn't have any products. If you have remove ads product, add it to the list");
         }
@@ -328,10 +348,11 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         bool isValidPurchase = IAPProcessor.OnPurchase(args);
         //if isValidPurchase was false, you should display an error message
 
-        persistentOnPurchaseCompleteCallback?.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
+        PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(args.purchasedProduct.definition.id, true);
+        persistentOnPurchaseCompleteCallback?.Invoke(purchaseResultArgs);
         if (onNextPurchaseComplete != null)
         {
-            onNextPurchaseComplete.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
+            onNextPurchaseComplete.Invoke(purchaseResultArgs);
             onNextPurchaseComplete = null;
             //persistentOnPurchaseCompleteCallback?.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
         }
@@ -377,6 +398,13 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         Debug.Log(string.Format("OnPurchaseFailed: FAIL. Product: '{0}', PurchaseFailureReason: {1}", product.definition.storeSpecificId, failureReason));
         FirebaseManager.LogCrashlytics(failureReason.ToString());
         FirebaseManager.LogException(new Exception("IAP Purchase Failed"));
+    }
+
+    void OnPurchaseFailed(PurchaseResultArgs resultArgs)
+    {
+        LogError(resultArgs.message);
+        onNextPurchaseComplete?.Invoke(resultArgs);
+        persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
     }
 
     public static bool CheckReceipt(string productId)
