@@ -38,5 +38,6 @@ public class IAPProductData : ScriptableObject
 public class Payout
 {
     public int quantity;
+    [Tooltip("Currency = 1 \nHint = 2 \nOther = 3 \nNoAds = 4;")]
     public PayoutType.Type type;
 }
