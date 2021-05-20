@@ -21,7 +21,7 @@
         }
     }
     public static readonly Type Currency = 1;
-    public static readonly Type Hint = 2;
+    public static readonly Type Item = 2;
     public static readonly Type Other = 3;
     public static readonly Type NoAds = 4;
 }
