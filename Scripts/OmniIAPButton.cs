@@ -23,9 +23,9 @@ namespace Omnilatent.InAppPurchase
             InAppPurchaseHelper.instance.BuyProduct(productData.ProductId, OnPurchaseProduct);
         }
 
-        void OnPurchaseProduct(bool success, PurchaseProcessingResult result, string productID)
+        void OnPurchaseProduct(PurchaseResultArgs purchaseResultArgs)
         {
-            onPurchaseSuccess?.Invoke(success);
+            onPurchaseSuccess?.Invoke(purchaseResultArgs.isSuccess);
         }
     }
 }
