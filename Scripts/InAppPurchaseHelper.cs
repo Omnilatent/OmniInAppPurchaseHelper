@@ -50,16 +50,15 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     // kProductIDSubscription - it has custom Apple and Google identifiers. We declare their store-
     // specific mapping to Unity Purchasing's AddProduct, below.
     public static string productIDDiamond1 = "diamond_01";
-    const int productDiamond1Payout = 200;
 
     public static string kProductIDNonConsumable = "test2";
     public static string kProductIDSubscription = "testsubscription";
 
     // Apple App Store-specific product identifier for the subscription product.
-    private static string kProductNameAppleSubscription = "com.unity3d.subscription.new";
+    //private static string kProductNameAppleSubscription = "com.unity3d.subscription.new";
 
     // Google Play Store-specific product identifier subscription product.
-    private static string kProductNameGooglePlaySubscription = "com.unity3d.subscription.original";
+    //private static string kProductNameGooglePlaySubscription = "com.unity3d.subscription.original";
 
 
     static InAppPurchaseHelper _instance;
