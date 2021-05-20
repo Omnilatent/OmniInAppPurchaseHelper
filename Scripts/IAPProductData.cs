@@ -14,7 +14,7 @@ public class IAPProductData : ScriptableObject
 
     Product GetProduct()
     {
-        return InAppPurchaseHelper.instance.GetProduct(ProductId);
+        return InAppPurchaseHelper.Instance.GetProduct(ProductId);
     }
 
     public string LocalizedPriceString

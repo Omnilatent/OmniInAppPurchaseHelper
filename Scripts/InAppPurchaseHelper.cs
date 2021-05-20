@@ -62,14 +62,29 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     private static string kProductNameGooglePlaySubscription = "com.unity3d.subscription.original";
 
 
-    public static InAppPurchaseHelper instance;
+    static InAppPurchaseHelper _instance;
+
+    [Obsolete("Use Instance (capitalized I) instead")]
+    public static InAppPurchaseHelper instance => Instance;
+    public static InAppPurchaseHelper Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = Instantiate(Resources.Load<InAppPurchaseHelper>("OmnilatentRes/InAppPurchaseHelper"));
+            }
+            return _instance;
+        }
+    }
+
     private void Awake()
     {
-        if (instance == null)
+        if (_instance == null)
         {
-            instance = this;
+            _instance = this;
         }
-        else if (instance != this)
+        else if (_instance != this)
         {
             Destroy(gameObject);
         }
@@ -409,12 +424,12 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     public static bool CheckReceipt(string productId)
     {
-        return CheckReceipt(instance.GetProduct(productId));
+        return CheckReceipt(Instance.GetProduct(productId));
     }
 
     static bool CheckReceipt(Product purchasedProduct)
     {
-        if (!instance.IsInitialized()) return false;
+        if (!Instance.IsInitialized()) return false;
         bool validPurchase = true; // Presume valid for platforms with no R.V.
 
         // Unity IAP's validation logic is only included on these platforms.

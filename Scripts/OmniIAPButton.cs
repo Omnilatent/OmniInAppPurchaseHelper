@@ -20,7 +20,7 @@ namespace Omnilatent.InAppPurchase
 
         public void OnClick()
         {
-            InAppPurchaseHelper.instance.BuyProduct(productData.ProductId, OnPurchaseProduct);
+            InAppPurchaseHelper.Instance.BuyProduct(productData.ProductId, OnPurchaseProduct);
         }
 
         void OnPurchaseProduct(PurchaseResultArgs purchaseResultArgs)

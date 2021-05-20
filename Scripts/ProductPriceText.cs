@@ -16,7 +16,7 @@ public class ProductPriceText : MonoBehaviour
 
     public void Setup(IAPProductData iAPProductData)
     {
-        textPrice.text = InAppPurchaseHelper.instance.GetPriceString(iAPProductData.ProductId);
+        textPrice.text = InAppPurchaseHelper.Instance.GetPriceString(iAPProductData.ProductId);
     }
 
     private void Reset()
