@@ -1,0 +1,17 @@
+{
+    "name": "Omnilatent.InAppPurchase.Editor",
+    "references": [
+        "GUID:d3637dc643d9f1b4c976cbe7c86e6b81"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
