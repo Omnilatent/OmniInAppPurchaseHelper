@@ -2,10 +2,10 @@
     "name": "Omnilatent.InAppPurchaseHelper",
     "references": [
         "Unity.TextMeshPro",
-        "OmniLatent.FirebaseManager",
         "Omnilatent.AdsManager",
         "Google.Play.Billing",
-        "UnityEngine.Purchasing"
+        "UnityEngine.Purchasing",
+        "Omnilatent.Firebase"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
