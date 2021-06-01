@@ -31,6 +31,7 @@ namespace Omnilatent.InAppPurchase
 public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 {
     [SerializeField] IAPProductData[] removeAdsProducts; //Products to check receipt on initialized 
+    [SerializeField] bool hideBannerOnCheckRemoveAd = true;
 
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
     private static IExtensionProvider m_StoreExtensionProvider; // The store-specific Purchasing subsystems.
@@ -348,6 +349,8 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         }
         PlayerPrefs.SetInt(IAPProcessor.PREF_NO_ADS, hasRemovedAds ? 1 : 0);
         IAPProcessor.Init();
+        if (hasRemovedAds && hideBannerOnCheckRemoveAd)
+            IAPProcessor.HideBannerOnCheckNoAd();
     }
 
 
