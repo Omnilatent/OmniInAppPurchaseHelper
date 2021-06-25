@@ -355,6 +355,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     {
         // Purchasing set-up has not succeeded. Check error for reason. Consider sharing this reason with the user.
         Debug.Log("OnInitializeFailed InitializationFailureReason:" + error);
+        LogError(error.ToString());
     }
 
     public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
@@ -410,13 +411,25 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         // A product purchase attempt did not succeed. Check failureReason for more detail. Consider sharing 
         // this reason with the user to guide their troubleshooting actions.
         Debug.Log(string.Format("OnPurchaseFailed: FAIL. Product: '{0}', PurchaseFailureReason: {1}", product.definition.storeSpecificId, failureReason));
-        FirebaseManager.LogCrashlytics(failureReason.ToString());
-        FirebaseManager.LogException(new Exception("IAP Purchase Failed"));
+        if (failureReason == PurchaseFailureReason.UserCancelled)
+        {
+            FirebaseManager.LogEvent("IAP_Cancelled", "message", failureReason.ToString());
+        }
+        else
+        {
+            FirebaseManager.LogCrashlytics(failureReason.ToString());
+            FirebaseManager.LogException(new Exception("IAP Purchase Failed"));
+        }
     }
 
     void OnPurchaseFailed(PurchaseResultArgs resultArgs)
     {
-        LogError(resultArgs.message);
+        string logMessage = string.Empty;
+        if (resultArgs.reason != null)
+        {
+            logMessage = resultArgs.reason.ToString();
+        }
+        LogError(logMessage);
         onNextPurchaseComplete?.Invoke(resultArgs);
         persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
     }
