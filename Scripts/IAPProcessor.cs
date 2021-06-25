@@ -62,4 +62,12 @@ public class IAPProcessor
             return false;
         }
     }
+
+    public static void HideBannerOnCheckNoAd()
+    {
+        if (CheckNoAds())
+        {
+            AdsManager.Instance.HideBanner();
+        }
+    }
 }
