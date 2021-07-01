@@ -1,3 +1,5 @@
+Git repository: https://github.com/Omnilatent/OmniInAppPurchaseHelper
+
 SETUP:
 - Follow Unity's IAP setup flow
 - If you followed Google's guide and get a duplicate aar error, delete the billing 3.0.1 aar file
