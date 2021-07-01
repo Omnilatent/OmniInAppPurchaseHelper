@@ -217,7 +217,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     IEnumerator WaitForInitialize(string productId, PurchaseCompleteDelegate purchaseCompleteDelegate)
     {
-        if (!IsInitialized())
+        if (!IsInitialized() && Application.internetReachability != NetworkReachability.NotReachable)
         {
             onToggleLoading?.Invoke(true);
             InitializePurchasing();
