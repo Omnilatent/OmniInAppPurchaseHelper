@@ -8,6 +8,7 @@ using Google.Play.Billing;
 using UnityEngine.Purchasing.Security;
 using System.Linq;
 using Omnilatent.InAppPurchase;
+using System.Collections;
 
 namespace Omnilatent.InAppPurchase
 {
@@ -39,6 +40,16 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     public delegate void PurchaseCompleteDelegate(PurchaseResultArgs purchaseResultArgs);
     PurchaseCompleteDelegate onNextPurchaseComplete; //This handle only get callback once, will be removed after callback
     public static PurchaseCompleteDelegate persistentOnPurchaseCompleteCallback; //always callback on purchase
+
+    /// <summary>
+    /// Callback on initialize complete. Pass true if initialize successfully.
+    /// </summary>
+    public event Action<bool> onInitializeComplete;
+
+    /// <summary>
+    /// Call a loading scene to block user's action when IAP controller is initializing
+    /// </summary>
+    public static Action<bool> onToggleLoading;
 
     // Product identifiers for all products capable of being purchased: 
     // "convenience" general identifiers for use with Purchasing, and their store-specific identifier 
@@ -201,7 +212,30 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     /// <param name="purchaseCompleteDelegate">Callback on purchase complete, callback should display a message dialog displaying purchase result</param>
     public void BuyProduct(string productId, PurchaseCompleteDelegate purchaseCompleteDelegate)
     {
-        InitializePurchasing();
+        StartCoroutine(WaitForInitialize(productId, purchaseCompleteDelegate));
+    }
+
+    IEnumerator WaitForInitialize(string productId, PurchaseCompleteDelegate purchaseCompleteDelegate)
+    {
+        if (!IsInitialized())
+        {
+            onToggleLoading?.Invoke(true);
+            InitializePurchasing();
+            float timeout = 5f;
+            var checkInterval = new WaitForSecondsRealtime(0.1f);
+            while (timeout > 0f)
+            {
+                if (IsInitialized())
+                {
+                    timeout = 0f;
+                    break;
+                }
+                timeout -= 0.1f;
+                yield return checkInterval;
+            }
+            onToggleLoading?.Invoke(false);
+        }
+
         // Buy the product using its general identifier. Expect a response either 
         // through ProcessPurchase or OnPurchaseFailed asynchronously.
         if (IsInitialized())
@@ -352,6 +386,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         IAPProcessor.Init();
         if (hasRemovedAds && hideBannerOnCheckRemoveAd)
             IAPProcessor.HideBannerOnCheckNoAd();
+        onInitializeComplete?.Invoke(true);
     }
 
 
@@ -360,6 +395,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         // Purchasing set-up has not succeeded. Check error for reason. Consider sharing this reason with the user.
         Debug.Log("OnInitializeFailed InitializationFailureReason:" + error);
         LogError(error.ToString());
+        onInitializeComplete?.Invoke(false);
     }
 
     public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
