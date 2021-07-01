@@ -201,6 +201,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     /// <param name="purchaseCompleteDelegate">Callback on purchase complete, callback should display a message dialog displaying purchase result</param>
     public void BuyProduct(string productId, PurchaseCompleteDelegate purchaseCompleteDelegate)
     {
+        InitializePurchasing();
         // Buy the product using its general identifier. Expect a response either 
         // through ProcessPurchase or OnPurchaseFailed asynchronously.
         if (IsInitialized())
