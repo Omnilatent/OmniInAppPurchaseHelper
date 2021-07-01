@@ -9,5 +9,6 @@
     "dependencies": 
     {
         "com.unity.purchasing": "2.0.6"
-    }
+    },
+    "documentationUrl": "https://github.com/Omnilatent/OmniInAppPurchaseHelper"
 }
