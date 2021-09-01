@@ -515,6 +515,13 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         return validPurchase;
     }
 
+    public static GoogleProductMetadata GetGoogleProductMetadata(string productID)
+    {
+        Product product = Instance.GetProduct(productID);
+        GoogleProductMetadata googleProductMetaData = UnityEngine.Purchasing.GetGoogleProductMetadataExtension.GetGoogleProductMetadata(product.metadata);
+        return googleProductMetaData;
+    }
+
     static void LogError(string msg)
     {
         Debug.LogError(msg);
