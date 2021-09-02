@@ -10,6 +10,10 @@ public class IAPProductData : ScriptableObject
     public ProductType productType = ProductType.Consumable;
     [Tooltip("Price to display in dollar when getting product info from server failed")]
     public float defaultPrice;
+
+    [Tooltip("Default Subscription period by days, only for Subscription products")]
+    public int defaultSubscriptionPeriodDays;
+
     public Payout[] payouts = new Payout[] { new Payout() };
 
     Product GetProduct()

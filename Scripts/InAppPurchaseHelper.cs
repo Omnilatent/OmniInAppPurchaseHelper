@@ -72,6 +72,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     // Google Play Store-specific product identifier subscription product.
     //private static string kProductNameGooglePlaySubscription = "com.unity3d.subscription.original";
 
+    Dictionary<string, SubscriptionManager> subscriptionManagers = new Dictionary<string, SubscriptionManager>();
 
     static InAppPurchaseHelper _instance;
 
@@ -520,6 +521,32 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         Product product = Instance.GetProduct(productID);
         GoogleProductMetadata googleProductMetaData = UnityEngine.Purchasing.GetGoogleProductMetadataExtension.GetGoogleProductMetadata(product.metadata);
         return googleProductMetaData;
+    }
+
+    /// <summary>
+    /// Warning: WIP function, doesn't work in last test
+    /// </summary>
+    public static SubscriptionInfo GetSubscriptionInfo(string productID)
+    {
+        SubscriptionManager subscriptionManager;
+        if (!Instance.subscriptionManagers.TryGetValue(productID, out subscriptionManager))
+        {
+            Product product = Instance.GetProduct(productID);
+            string intro_json = null;
+#if UNITY_IOS
+            Debug.LogWarning("IOS need intro json for introduction price");
+#endif
+            subscriptionManager = new SubscriptionManager(product, intro_json);
+            Instance.subscriptionManagers.Add(productID, subscriptionManager);
+        }
+        SubscriptionInfo info;
+#if UNITY_EDITOR
+        Debug.Log("Fake store not supported and will throw StoreSubscriptionInfoNotSupportedException error. Returning fake sub info.");
+        info = new SubscriptionInfo(productID);
+#else
+        info = subscriptionManager.getSubscriptionInfo();
+#endif
+        return info;
     }
 
     static void LogError(string msg)
