@@ -164,7 +164,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         UnityPurchasing.Initialize(this, builder);
     }
 
-    private bool IsInitialized()
+    public bool IsInitialized()
     {
         // Only say we are initialized if both the Purchasing references are set.
         bool value = m_StoreController != null && m_StoreExtensionProvider != null;
