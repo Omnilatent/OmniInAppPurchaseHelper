@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(IAPProductData))]
+[CustomEditor(typeof(IAPProductData)), CanEditMultipleObjects]
 public class IAPProductDataEditor : Editor
 {
     IAPProductData m_Script;
