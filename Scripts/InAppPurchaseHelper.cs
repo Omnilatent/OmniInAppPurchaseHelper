@@ -32,6 +32,7 @@ namespace Omnilatent.InAppPurchase
 public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 {
     [SerializeField] IAPProductData[] removeAdsProducts; //Products to check receipt on initialized 
+    public IAPProductData[] RemoveAdsProducts { get => removeAdsProducts; }
     [SerializeField] bool hideBannerOnCheckRemoveAd = true;
 
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
@@ -514,6 +515,12 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 #endif
 
         return validPurchase;
+    }
+
+    public static void ConfirmPendingPurchase(string productID)
+    {
+        var product = Instance.GetProduct(productID);
+        m_StoreController.ConfirmPendingPurchase(product);
     }
 
     public static GoogleProductMetadata GetGoogleProductMetadata(string productID)
