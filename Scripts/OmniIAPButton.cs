@@ -6,11 +6,16 @@ using UnityEngine.Purchasing;
 
 namespace Omnilatent.InAppPurchase
 {
+    [System.Serializable]
+    public class PurchaseEvent : UnityEvent<PurchaseResultArgs>
+    {
+    }
+
     public class OmniIAPButton : MonoBehaviour
     {
         [SerializeField] IAPProductData productData;
         [SerializeField] ProductPriceText productPriceText;
-        [SerializeField] UnityEvent<bool> onPurchaseSuccess;
+        [SerializeField] PurchaseEvent onPurchase;
         [SerializeField] bool disableIfOwned;
         [SerializeField] bool disableIfAdRemoved;
 
@@ -28,7 +33,7 @@ namespace Omnilatent.InAppPurchase
 
         void OnPurchaseProduct(PurchaseResultArgs purchaseResultArgs)
         {
-            onPurchaseSuccess?.Invoke(purchaseResultArgs.isSuccess);
+            onPurchase?.Invoke(purchaseResultArgs);
             CheckDisableIfOwned();
         }
 
