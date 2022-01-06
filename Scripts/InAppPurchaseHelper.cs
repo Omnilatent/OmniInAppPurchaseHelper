@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Purchasing;
-#if UNITY_ANDROID
-using Google.Play.Billing;
-#endif
-using UnityEngine.Purchasing.Security;
+//using UnityEngine.Purchasing.Security;
 using System.Linq;
 using Omnilatent.InAppPurchase;
 using System.Collections;
@@ -37,6 +34,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
     private static IExtensionProvider m_StoreExtensionProvider; // The store-specific Purchasing subsystems.
+    IGooglePlayStoreExtensions m_GooglePlayStoreExtensions;
 
     public delegate void PurchaseCompleteDelegate(PurchaseResultArgs purchaseResultArgs);
     PurchaseCompleteDelegate onNextPurchaseComplete; //This handle only get callback once, will be removed after callback
@@ -388,9 +386,14 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         IAPProcessor.Init();
         if (hasRemovedAds && hideBannerOnCheckRemoveAd)
             IAPProcessor.HideBannerOnCheckNoAd();
+
+        m_GooglePlayStoreExtensions = extensions.GetExtension<IGooglePlayStoreExtensions>();
+#if UNITY_ANDROID
+        m_GooglePlayStoreExtensions.RestoreTransactions(OnRestore);
+#endif
+
         onInitializeComplete?.Invoke(true);
     }
-
 
     public void OnInitializeFailed(InitializationFailureReason error)
     {
@@ -484,9 +487,12 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     static bool CheckReceipt(Product purchasedProduct)
     {
         if (!Instance.IsInitialized()) return false;
-        bool validPurchase = true; // Presume valid for platforms with no R.V.
 
-        // Unity IAP's validation logic is only included on these platforms.
+        return purchasedProduct.hasReceipt;
+
+        //2022/1/6: New Unity IAP only have validator for Apple Store.
+        //bool validPurchase = true; // Presume valid for platforms with no R.V.
+        /*// Unity IAP's validation logic is only included on these platforms.
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
         // Prepare the validator with the secrets we prepared in the Editor
         // obfuscation window.
@@ -514,7 +520,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         }
 #endif
 
-        return validPurchase;
+        return validPurchase;*/
     }
 
     public static void ConfirmPendingPurchase(string productID)
@@ -554,6 +560,24 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         info = subscriptionManager.getSubscriptionInfo();
 #endif
         return info;
+    }
+
+    void OnRestore(bool success)
+    {
+        var restoreMessage = "";
+        if (success)
+        {
+            // This does not mean anything was restored,
+            // merely that the restoration process succeeded.
+            restoreMessage = "Restore Successful";
+        }
+        else
+        {
+            // Restoration failed.
+            restoreMessage = "Restore Failed";
+        }
+
+        Debug.Log(restoreMessage);
     }
 
     static void LogError(string msg)

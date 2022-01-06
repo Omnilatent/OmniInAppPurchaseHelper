@@ -1,11 +1,14 @@
 {
     "name": "Omnilatent.InAppPurchaseHelper",
+    "rootNamespace": "",
     "references": [
         "Unity.TextMeshPro",
         "Omnilatent.AdsManager",
         "Google.Play.Billing",
         "UnityEngine.Purchasing",
-        "Omnilatent.Firebase"
+        "Omnilatent.Firebase",
+        "UnityEngine.Purchasing.Stores",
+        "UnityEngine.Purchasing.Security"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
