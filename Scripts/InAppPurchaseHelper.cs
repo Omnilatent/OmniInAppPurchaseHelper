@@ -374,7 +374,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         {
             foreach (var payout in item.payouts)
             {
-                if (payout.type == PayoutType.NoAds && InAppPurchaseHelper.CheckReceipt(item.ProductId))
+                if (payout.payoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.ProductId))
                 {
                     hasRemovedAds = true;
                     break;

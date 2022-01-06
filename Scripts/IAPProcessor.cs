@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Purchasing;
 
+/// <summary>
+/// Handle Remove Ad
+/// </summary>
 public class IAPProcessor
 {
     public const string dataFolder = "ProductData";

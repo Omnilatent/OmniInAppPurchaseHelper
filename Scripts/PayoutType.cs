@@ -1,4 +1,5 @@
-﻿public partial class PayoutType
+﻿[System.Obsolete("PayoutType is deprecated. Switch to PayoutTypeEnum")]
+public partial class PayoutType
 {
     [System.Serializable]
     public struct Type
@@ -24,4 +25,12 @@
     public static readonly Type Item = 2;
     public static readonly Type Other = 3;
     public static readonly Type NoAds = 4;
+}
+
+public enum PayoutTypeEnum
+{
+    Currency = 1,
+    Item = 2,
+    Other = 3,
+    NoAds = 4
 }

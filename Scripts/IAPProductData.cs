@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Purchasing;
 
@@ -43,8 +44,10 @@ public class Payout
 {
     public int quantity;
 
-    [Header("Type: Currency = 1, Item = 2, Other = 3, NoAds = 4")]
-    public PayoutType.Type type;
+    [Tooltip("Type: Currency = 1, Item = 2, Other = 3, NoAds = 4")]
+    [ReadOnly] public PayoutType type;
 
-    public int subtype;
+    public PayoutTypeEnum payoutType;
+
+    public string subtype;
 }
