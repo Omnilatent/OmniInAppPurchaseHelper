@@ -11,11 +11,14 @@ namespace Omnilatent.InAppPurchase
         [SerializeField] IAPProductData productData;
         [SerializeField] ProductPriceText productPriceText;
         [SerializeField] UnityEvent<bool> onPurchaseSuccess;
+        [SerializeField] bool disableIfOwned;
+        [SerializeField] bool disableIfAdRemoved;
 
         private void Start()
         {
             if (productPriceText != null)
                 productPriceText.Setup(productData);
+            CheckDisableIfOwned();
         }
 
         public void OnClick()
@@ -26,6 +29,16 @@ namespace Omnilatent.InAppPurchase
         void OnPurchaseProduct(PurchaseResultArgs purchaseResultArgs)
         {
             onPurchaseSuccess?.Invoke(purchaseResultArgs.isSuccess);
+            CheckDisableIfOwned();
+        }
+
+        void CheckDisableIfOwned()
+        {
+            if ((disableIfOwned && productData.productType == UnityEngine.Purchasing.ProductType.NonConsumable && InAppPurchaseHelper.CheckReceipt(productData.ProductId))
+                || (disableIfAdRemoved && IAPProcessor.CheckNoAds()))
+            {
+                gameObject.SetActive(false);
+            }
         }
     }
 }
