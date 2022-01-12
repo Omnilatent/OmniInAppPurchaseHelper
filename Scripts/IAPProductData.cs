@@ -44,6 +44,7 @@ public class Payout
 {
     public int quantity;
 
+    [System.Obsolete("Use payoutType instead")]
     [Tooltip("Type: Currency = 1, Item = 2, Other = 3, NoAds = 4")]
     [ReadOnly] public PayoutType type;
 

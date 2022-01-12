@@ -1,14 +1,14 @@
 {
     "name": "com.omnilatent.inappurchasehelper",
     "displayName": "Omni In App Purchase Helper",
-    "version": "1.1.1",
-    "unity": "2018.1",
+    "version": "2.0.0",
+    "unity": "2020.3",
     "description": "Helper for Google Billing IAP",
     "keywords": ["iap"],
     "category": "Wrapper",
     "dependencies": 
     {
-        "com.unity.purchasing": "2.0.6"
+        "com.unity.purchasing": "4.1.2"
     },
     "documentationUrl": "https://github.com/Omnilatent/OmniInAppPurchaseHelper"
 }
