@@ -7,7 +7,7 @@ public partial class PayoutType
     [System.Serializable]
     public struct Type
     {
-        [ReadOnly][UnityEngine.SerializeField] private int _Value;
+        [ReadOnly] [UnityEngine.SerializeField] private int _Value;
 
         public static implicit operator Type(int value)
         {
@@ -32,6 +32,7 @@ public partial class PayoutType
 
 public enum PayoutTypeEnum
 {
+    NotSet = 0,
     Currency = 1,
     Item = 2,
     Other = 3,
