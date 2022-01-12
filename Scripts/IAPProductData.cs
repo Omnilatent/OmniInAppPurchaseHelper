@@ -43,12 +43,10 @@ public class IAPProductData : ScriptableObject
 public class Payout
 {
     public int quantity;
+    public PayoutTypeEnum payoutType;
+    public string subtype;
 
     [System.Obsolete("Use payoutType instead")]
-    [Tooltip("Type: Currency = 1, Item = 2, Other = 3, NoAds = 4")]
-    [ReadOnly] public PayoutType type;
-
-    public PayoutTypeEnum payoutType;
-
-    public string subtype;
+    [Tooltip("PayoutType.Type is deprecated. Do not use this field, use payoutType field instead.")]
+    [ReadOnly] public PayoutType.Type type;
 }

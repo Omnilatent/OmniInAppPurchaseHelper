@@ -1,10 +1,13 @@
-﻿[System.Obsolete("PayoutType is deprecated. Switch to PayoutTypeEnum")]
+﻿using Unity.Collections;
+
+[System.Obsolete("PayoutType is deprecated. Switch to PayoutTypeEnum")]
 public partial class PayoutType
 {
+    [System.Obsolete("PayoutType is deprecated. Switch to PayoutTypeEnum")]
     [System.Serializable]
     public struct Type
     {
-        [UnityEngine.SerializeField] private int _Value;
+        [ReadOnly][UnityEngine.SerializeField] private int _Value;
 
         public static implicit operator Type(int value)
         {
