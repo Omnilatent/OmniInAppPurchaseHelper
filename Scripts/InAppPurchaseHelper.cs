@@ -127,14 +127,14 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             return;
         }
 
-//#if UNITY_EDITOR || UNITY_STANDALONE
+        //#if UNITY_EDITOR || UNITY_STANDALONE
         // Create a builder, first passing in a suite of Unity provided stores.
         var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
-/*#elif UNITY_ANDROID
-        // Create a builder using the GooglePlayStoreModule.
-        var builder =
-            ConfigurationBuilder.Instance(Google.Play.Billing.GooglePlayStoreModule.Instance());
-#endif*/
+        /*#elif UNITY_ANDROID
+                // Create a builder using the GooglePlayStoreModule.
+                var builder =
+                    ConfigurationBuilder.Instance(Google.Play.Billing.GooglePlayStoreModule.Instance());
+        #endif*/
 
         /*var storeModule = StandardPurchasingModule.Instance();
         if (Application.platform == RuntimePlatform.Android)
@@ -591,7 +591,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         {
             foreach (var payout in productData.payouts)
             {
-                if (!payoutSubtypes.Contains(payout.subtype))
+                if (!string.IsNullOrEmpty(payout.subtype) && !payoutSubtypes.Contains(payout.subtype))
                 {
                     throw new System.Exception($"Subtype {payout.subtype} of product {productData.ProductId} not registered in HandleIAPEvent");
                 }
