@@ -34,6 +34,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     [Tooltip("List of payout subtype. Log error if there are any product payout with subtype not included.")]
     [SerializeField] List<string> payoutSubtypes;
+    [SerializeField] bool allowUnexpectedSubtype;
 
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
     private static IExtensionProvider m_StoreExtensionProvider; // The store-specific Purchasing subsystems.
@@ -587,13 +588,13 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     void ValidateProductPayoutSubtype(IAPProductData productData)
     {
         //Validate payout subtype, only in debug build.
-        if (Debug.isDebugBuild && payoutSubtypes.Count > 0)
+        if (!allowUnexpectedSubtype && Debug.isDebugBuild && payoutSubtypes.Count > 0)
         {
             foreach (var payout in productData.payouts)
             {
                 if (!string.IsNullOrEmpty(payout.subtype) && !payoutSubtypes.Contains(payout.subtype))
                 {
-                    throw new System.Exception($"Subtype {payout.subtype} of product {productData.ProductId} not registered in HandleIAPEvent");
+                    Debug.LogException(new System.Exception($"Subtype {payout.subtype} of product {productData.ProductId} not registered in HandleIAPEvent"));
                 }
             }
         }
