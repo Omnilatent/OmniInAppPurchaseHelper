@@ -12,6 +12,17 @@ namespace Omnilatent.InAppPurchase.Editor
         public static void ImportExtraPackage()
         {
             string path = GetPackagePath("Assets/Omnilatent/OmniInAppPurchaseHelper/OmniIAPExtra.unitypackage", "OmniIAPExtra");
+            AssetDatabase.importPackageCompleted += ImportTangleAsmdefRef;
+            AssetDatabase.importPackageCancelled += ImportTangleAsmdefRef;
+            AssetDatabase.ImportPackage(path, true);
+        }
+
+        static void ImportTangleAsmdefRef(string lastPackageName)
+        {
+            AssetDatabase.importPackageCompleted -= ImportTangleAsmdefRef;
+            AssetDatabase.importPackageCancelled -= ImportTangleAsmdefRef;
+            Debug.Log("Importing OmniIAPExtra_TangleAsmdefRef");
+            string path = GetPackagePath("Assets/Omnilatent/OmniInAppPurchaseHelper/OmniIAPExtra_TangleAsmdefRef.unitypackage", "OmniIAPExtra_TangleAsmdefRef");
             AssetDatabase.ImportPackage(path, true);
         }
 
