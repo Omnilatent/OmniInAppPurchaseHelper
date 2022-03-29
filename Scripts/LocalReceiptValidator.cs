@@ -53,7 +53,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             }
         }
 
-        return true;
+        return purchasedProduct.hasReceipt;
     }
 
     static bool IsCurrentStoreSupportedByValidator()
