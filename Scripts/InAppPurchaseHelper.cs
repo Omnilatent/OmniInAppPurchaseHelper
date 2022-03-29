@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Purchasing;
-//using UnityEngine.Purchasing.Security;
+using UnityEngine.Purchasing.Security;
 using System.Linq;
 using Omnilatent.InAppPurchase;
 using System.Collections;
@@ -26,7 +26,7 @@ namespace Omnilatent.InAppPurchase
     }
 }
 
-public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
+public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 {
     [SerializeField] IAPProductData[] removeAdsProducts; //Products to check receipt on initialized 
     public IAPProductData[] RemoveAdsProducts { get => removeAdsProducts; }
@@ -400,7 +400,7 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 #if UNITY_ANDROID
         m_GooglePlayStoreExtensions.RestoreTransactions(OnRestore);
 #endif
-
+        InitializeValidator();
         onInitializeComplete?.Invoke(true);
     }
 
@@ -486,50 +486,6 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         LogError(logMessage);
         onNextPurchaseComplete?.Invoke(resultArgs);
         persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
-    }
-
-    public static bool CheckReceipt(string productId)
-    {
-        return CheckReceipt(Instance.GetProduct(productId));
-    }
-
-    static bool CheckReceipt(Product purchasedProduct)
-    {
-        if (!Instance.IsInitialized()) return false;
-
-        return purchasedProduct.hasReceipt;
-
-        //2022/1/6: New Unity IAP only have validator for Apple Store.
-        //bool validPurchase = true; // Presume valid for platforms with no R.V.
-        /*// Unity IAP's validation logic is only included on these platforms.
-#if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_OSX
-        // Prepare the validator with the secrets we prepared in the Editor
-        // obfuscation window.
-        var validator = new CrossPlatformValidator(GooglePlayTangle.Data(),
-            AppleTangle.Data(), Application.identifier);
-
-        try
-        {
-            // On Google Play, result has a single product ID.
-            // On Apple stores, receipts contain multiple products.
-            var result = validator.Validate(purchasedProduct.receipt);
-            // For informational purposes, we list the receipt(s)
-            Debug.Log("Receipt is valid. Contents:");
-            foreach (IPurchaseReceipt productReceipt in result)
-            {
-                Debug.Log(productReceipt.productID);
-                Debug.Log(productReceipt.purchaseDate);
-                Debug.Log(productReceipt.transactionID);
-            }
-        }
-        catch (IAPSecurityException)
-        {
-            Debug.Log("Invalid receipt, not unlocking content");
-            validPurchase = false;
-        }
-#endif
-
-        return validPurchase;*/
     }
 
     public static void ConfirmPendingPurchase(string productID)
