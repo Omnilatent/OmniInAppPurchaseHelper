@@ -15,6 +15,13 @@ public class IAPProductDataEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        if (GUILayout.Button("Generate default Apple Appstore product ID"))
+        {
+            m_Script.SetDefaultAppleAppstoreProductId();
+            EditorUtility.SetDirty(m_Script);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
         base.OnInspectorGUI();
     }
 }

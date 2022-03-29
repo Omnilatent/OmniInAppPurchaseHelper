@@ -11,7 +11,17 @@ using UnityEditor;
 [CreateAssetMenu(fileName = "ProductData", menuName = "IAP Product Data")]
 public class IAPProductData : ScriptableObject
 {
-    public string ProductId { get => name; }
+    public string ProductId
+    {
+        get
+        {
+            return name;
+        }
+    }
+
+    [SerializeField] string appleAppStoreProductId;
+    public string AppleAppStoreProductId { get => appleAppStoreProductId; }
+
     public ProductType productType = ProductType.Consumable;
     [Tooltip("Price to display in dollar when getting product info from server failed")]
     public float defaultPrice;
@@ -40,6 +50,11 @@ public class IAPProductData : ScriptableObject
                 return $"${defaultPrice:n2}";
             }
         }
+    }
+
+    public void SetDefaultAppleAppstoreProductId()
+    {
+        appleAppStoreProductId = $"{Application.identifier}.{name}";
     }
 
 #if UNITY_EDITOR

@@ -150,7 +150,11 @@ public class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         IAPProductData[] products = Resources.LoadAll(IAPProcessor.dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
         foreach (var item in products)
         {
-            builder.AddProduct(item.ProductId, item.productType);
+            builder.AddProduct(item.ProductId, item.productType, new IDs
+            {
+                { item.ProductId, GooglePlay.Name },
+                { item.AppleAppStoreProductId, AppleAppStore.Name }
+            });
             ValidateProductPayoutSubtype(item);
         }
 
