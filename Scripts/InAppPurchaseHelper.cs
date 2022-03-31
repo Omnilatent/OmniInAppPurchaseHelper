@@ -367,6 +367,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         m_StoreController = controller;
         // Store specific subsystem, for accessing device-specific store features.
         m_StoreExtensionProvider = extensions;
+        InitializeValidator();
 
         //check if user has purchased any remove ads product
         bool hasRemovedAds = false;
@@ -395,7 +396,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 #if UNITY_ANDROID
         m_GooglePlayStoreExtensions.RestoreTransactions(OnRestore);
 #endif
-        InitializeValidator();
         onInitializeComplete?.Invoke(true);
     }
 
