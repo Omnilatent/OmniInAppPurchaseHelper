@@ -56,27 +56,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     public static Action<System.Exception> onLogException;
 
-    // Product identifiers for all products capable of being purchased: 
-    // "convenience" general identifiers for use with Purchasing, and their store-specific identifier 
-    // counterparts for use with and outside of Unity Purchasing. Define store-specific identifiers 
-    // also on each platform's publisher dashboard (iTunes Connect, Google Play Developer Console, etc.)
-
-    // General product identifiers for the consumable, non-consumable, and subscription products.
-    // Use these handles in the code to reference which product to purchase. Also use these values 
-    // when defining the Product Identifiers on the store. Except, for illustration purposes, the 
-    // kProductIDSubscription - it has custom Apple and Google identifiers. We declare their store-
-    // specific mapping to Unity Purchasing's AddProduct, below.
-    public static string productIDDiamond1 = "diamond_01";
-
-    public static string kProductIDNonConsumable = "test2";
-    public static string kProductIDSubscription = "testsubscription";
-
-    // Apple App Store-specific product identifier for the subscription product.
-    //private static string kProductNameAppleSubscription = "com.unity3d.subscription.new";
-
-    // Google Play Store-specific product identifier subscription product.
-    //private static string kProductNameGooglePlaySubscription = "com.unity3d.subscription.original";
-
     Dictionary<string, SubscriptionManager> subscriptionManagers = new Dictionary<string, SubscriptionManager>();
     bool processingPurchase = false;
 
@@ -131,22 +110,9 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             return;
         }
 
-        //#if UNITY_EDITOR || UNITY_STANDALONE
         // Create a builder, first passing in a suite of Unity provided stores.
         var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
-        /*#elif UNITY_ANDROID
-                // Create a builder using the GooglePlayStoreModule.
-                var builder =
-                    ConfigurationBuilder.Instance(Google.Play.Billing.GooglePlayStoreModule.Instance());
-        #endif*/
-
-        /*var storeModule = StandardPurchasingModule.Instance();
-        if (Application.platform == RuntimePlatform.Android)
-        {
-            storeModule = Google.Play.Billing.GooglePlayStoreModule.Instance() as StandardPurchasingModule;
-        }
-        var builder = ConfigurationBuilder.Instance(storeModule);*/
-
+        
         // Add a product to sell / restore by way of its identifier, associating the general identifier
         // with its store-specific identifiers.
 
@@ -160,15 +126,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             });
             ValidateProductPayoutSubtype(item);
         }
-
-        // And finish adding the subscription product. Notice this uses store-specific IDs, illustrating
-        // if the Product ID was configured differently between Apple and Google stores. Also note that
-        // one uses the general kProductIDSubscription handle inside the game - the store-specific IDs 
-        // must only be referenced here. 
-        /*builder.AddProduct(kProductIDSubscription, ProductType.Subscription, new IDs(){
-            { kProductNameAppleSubscription, AppleAppStore.Name },
-            { kProductNameGooglePlaySubscription, GooglePlay.Name },
-        });*/
 
         // Kick off the remainder of the set-up with an asynchrounous call, passing the configuration 
         // and this class' instance. Expect a response either in OnInitialized or OnInitializeFailed.
