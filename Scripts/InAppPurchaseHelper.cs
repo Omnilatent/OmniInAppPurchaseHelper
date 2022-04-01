@@ -243,6 +243,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
                 if (processingPurchase)
                 {
                     onToggleLoading?.Invoke(false);
+                    processingPurchase = false;
                     var e = new System.Exception("Processing purchase self timed out.");
                     Debug.LogException(e);
                     onLogException?.Invoke(e);
@@ -461,6 +462,9 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         return String.Equals(args.purchasedProduct.definition.id, productId, StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// IStoreListener function.
+    /// </summary>
     public void OnPurchaseFailed(Product product, PurchaseFailureReason failureReason)
     {
         // A product purchase attempt did not succeed. Check failureReason for more detail. Consider sharing 
@@ -474,6 +478,11 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         {
             FirebaseManager.LogCrashlytics(failureReason.ToString());
             FirebaseManager.LogException(new Exception("IAP Purchase Failed"));
+        }
+        if (processingPurchase)
+        {
+            onToggleLoading?.Invoke(false);
+            processingPurchase = false;
         }
     }
 
