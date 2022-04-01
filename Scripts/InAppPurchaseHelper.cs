@@ -58,6 +58,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     Dictionary<string, SubscriptionManager> subscriptionManagers = new Dictionary<string, SubscriptionManager>();
     bool processingPurchase = false;
+    bool debugWillConsumeAllNonConsumable = false; //If set to true before initializing, will consume all non-consumable product to allow re-purchasing.
 
     static InAppPurchaseHelper _instance;
 
@@ -112,14 +113,17 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
         // Create a builder, first passing in a suite of Unity provided stores.
         var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
-        
+
         // Add a product to sell / restore by way of its identifier, associating the general identifier
         // with its store-specific identifiers.
 
         IAPProductData[] products = Resources.LoadAll(IAPProcessor.dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
+
         foreach (var item in products)
         {
-            builder.AddProduct(item.ProductId, item.productType, new IDs
+            ProductType productType = item.productType;
+            if (debugWillConsumeAllNonConsumable && productType == ProductType.NonConsumable) { productType = ProductType.Consumable; }
+            builder.AddProduct(item.ProductId, productType, new IDs
             {
                 { item.ProductId, GooglePlay.Name },
                 { item.AppleAppStoreProductId, AppleAppStore.Name }
@@ -383,6 +387,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 #if UNITY_ANDROID
         m_GooglePlayStoreExtensions.RestoreTransactions(OnRestore);
 #endif
+        if (debugWillConsumeAllNonConsumable) ConsumeAllPendingPurchases();
         onInitializeComplete?.Invoke(true);
     }
 
@@ -553,6 +558,23 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
                     Debug.LogException(new System.Exception($"Subtype {payout.subtype} of product {productData.ProductId} not registered in HandleIAPEvent"));
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Call this before enabling IAPHelper object to consume all non-consumable products
+    /// </summary>
+    public void ToggleDebugConsumeAllNonConsumable()
+    {
+        debugWillConsumeAllNonConsumable = true;
+    }
+
+    void ConsumeAllPendingPurchases()
+    {
+        IAPProductData[] products = Resources.LoadAll(IAPProcessor.dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
+        foreach (var item in products)
+        {
+            ConfirmPendingPurchase(item.ProductId);
         }
     }
 
