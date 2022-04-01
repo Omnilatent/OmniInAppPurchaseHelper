@@ -54,6 +54,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     /// </summary>
     public static Action<bool> onToggleLoading;
 
+    public static Action<System.Exception> onLogException;
+
     // Product identifiers for all products capable of being purchased: 
     // "convenience" general identifiers for use with Purchasing, and their store-specific identifier 
     // counterparts for use with and outside of Unity Purchasing. Define store-specific identifiers 
@@ -76,6 +78,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     //private static string kProductNameGooglePlaySubscription = "com.unity3d.subscription.original";
 
     Dictionary<string, SubscriptionManager> subscriptionManagers = new Dictionary<string, SubscriptionManager>();
+    bool processingPurchase = false;
 
     static InAppPurchaseHelper _instance;
 
@@ -230,6 +233,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         {
             onToggleLoading?.Invoke(true);
             InitializePurchasing();
+
+            //Wait timeout
             float timeout = 5f;
             var checkInterval = new WaitForSecondsRealtime(0.1f);
             while (timeout > 0f)
@@ -242,6 +247,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
                 timeout -= 0.1f;
                 yield return checkInterval;
             }
+
             onToggleLoading?.Invoke(false);
         }
 
@@ -256,6 +262,30 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             {
                 Debug.Log(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
                 m_StoreController.InitiatePurchase(product);
+                onToggleLoading?.Invoke(true);
+                processingPurchase = true;
+
+                //Wait timeout
+                float timeout = 15f;
+                var checkInterval = new WaitForSecondsRealtime(0.1f);
+                while (timeout > 0f)
+                {
+                    if (!processingPurchase)
+                    {
+                        timeout = 0f;
+                        break;
+                    }
+                    timeout -= 0.1f;
+                    yield return checkInterval;
+                }
+
+                if (processingPurchase)
+                {
+                    onToggleLoading?.Invoke(false);
+                    var e = new System.Exception("Processing purchase self timed out.");
+                    Debug.LogException(e);
+                    onLogException?.Invoke(e);
+                }
             }
             else
             {
@@ -409,6 +439,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
     {
+        onToggleLoading?.Invoke(false);
+        processingPurchase = false;
         bool isValidPurchase = IAPProcessor.OnPurchase(args);
         //if isValidPurchase was false, you should display an error message
 
@@ -420,6 +452,18 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             onNextPurchaseComplete = null;
             //persistentOnPurchaseCompleteCallback?.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
         }
+
+        Debug.Log($"Processing Purchase: {args.purchasedProduct.definition.id}");
+
+        if (Application.platform == RuntimePlatform.IPhonePlayer ||
+            Application.platform == RuntimePlatform.tvOS)
+        {
+            var apple = m_StoreExtensionProvider.GetExtension<IAppleExtensions>();
+            var receipt = apple.GetTransactionReceiptForProduct(args.purchasedProduct);
+            Debug.Log($"Product receipt for deferred purchase: {receipt}");
+            // Send transaction receipt to server for validation
+        }
+
         /*// A consumable product has been purchased by this user.
         if (CompareProductId(productIDDiamond1, args))
         {
