@@ -222,8 +222,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             if (product != null && product.availableToPurchase)
             {
                 Debug.Log(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
-                m_StoreController.InitiatePurchase(product);
                 onToggleLoading?.Invoke(true);
+                m_StoreController.InitiatePurchase(product);
                 processingPurchase = true;
 
                 //Wait timeout
