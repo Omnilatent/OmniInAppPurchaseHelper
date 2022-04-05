@@ -251,7 +251,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             }
             else
             {
-                string msg = $"BuyProduct {productId} failed. Product is either not found or not available for purchase";
+                string msg = $"BuyProduct {productId} failed. Product is either not found or not available for purchase.";
                 PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.ProductUnavailable);
                 OnPurchaseFailed(purchaseResultArgs);
             }
@@ -478,7 +478,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             onToggleLoading?.Invoke(false);
             processingPurchase = false;
         }
-        InvokeCallbackClearNextPurchaseCallback(new PurchaseResultArgs(product.definition.id, false, $"Purchase failed. Reason: {failureReason}", failureReason));
+        InvokeCallbackClearNextPurchaseCallback(new PurchaseResultArgs(product.definition.id, false, "Purchase failed.", failureReason));
     }
 
     void OnPurchaseFailed(PurchaseResultArgs resultArgs)
