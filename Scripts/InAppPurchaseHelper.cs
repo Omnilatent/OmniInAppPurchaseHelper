@@ -408,13 +408,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         //if isValidPurchase was false, you should display an error message
 
         PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(args.purchasedProduct.definition.id, true);
-        persistentOnPurchaseCompleteCallback?.Invoke(purchaseResultArgs);
-        if (onNextPurchaseComplete != null)
-        {
-            onNextPurchaseComplete.Invoke(purchaseResultArgs);
-            onNextPurchaseComplete = null;
-            //persistentOnPurchaseCompleteCallback?.Invoke(isValidPurchase, PurchaseProcessingResult.Complete, args.purchasedProduct.definition.id);
-        }
+        InvokeCallbackClearNextPurchaseCallback(purchaseResultArgs);
 
         Debug.Log($"Processing Purchase: {args.purchasedProduct.definition.id}");
 
@@ -484,6 +478,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             onToggleLoading?.Invoke(false);
             processingPurchase = false;
         }
+        InvokeCallbackClearNextPurchaseCallback(new PurchaseResultArgs(product.definition.id, false, $"Purchase failed. Reason: {failureReason}", failureReason));
     }
 
     void OnPurchaseFailed(PurchaseResultArgs resultArgs)
@@ -494,12 +489,17 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             logMessage = resultArgs.reason.ToString();
         }
         LogError(logMessage);
+        InvokeCallbackClearNextPurchaseCallback(resultArgs);
+    }
+
+    void InvokeCallbackClearNextPurchaseCallback(PurchaseResultArgs resultArgs)
+    {
+        persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
         if (onNextPurchaseComplete != null)
         {
             onNextPurchaseComplete.Invoke(resultArgs);
             onNextPurchaseComplete = null;
         }
-        persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
     }
 
     public static void ConfirmPendingPurchase(string productID)
