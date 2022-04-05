@@ -494,7 +494,11 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             logMessage = resultArgs.reason.ToString();
         }
         LogError(logMessage);
-        onNextPurchaseComplete?.Invoke(resultArgs);
+        if (onNextPurchaseComplete != null)
+        {
+            onNextPurchaseComplete.Invoke(resultArgs);
+            onNextPurchaseComplete = null;
+        }
         persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
     }
 
