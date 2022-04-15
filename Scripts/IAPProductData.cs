@@ -37,19 +37,11 @@ public class IAPProductData : ScriptableObject
         return InAppPurchaseHelper.Instance.GetProduct(ProductId);
     }
 
-    public string LocalizedPriceString
+    public string DefaultPriceString
     {
         get
         {
-            var product = GetProduct();
-            if (product != null)
-            {
-                return product.metadata.localizedPriceString;
-            }
-            else
-            {
-                return $"${defaultPrice:n2}";
-            }
+            return $"${defaultPrice:n2}";
         }
     }
 
