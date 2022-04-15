@@ -381,6 +381,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             if (hasRemovedAds) break;
         }
         PlayerPrefs.SetInt(IAPProcessor.PREF_NO_ADS, hasRemovedAds ? 1 : 0);
+        RestorePurchaseHelper.Initialize();
         IAPProcessor.Init();
         if (hasRemovedAds && hideBannerOnCheckRemoveAd)
             IAPProcessor.HideBannerOnCheckNoAd();

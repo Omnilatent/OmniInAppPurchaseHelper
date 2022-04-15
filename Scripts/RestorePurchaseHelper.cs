@@ -28,6 +28,8 @@ namespace Omnilatent.InAppPurchase
             InAppPurchaseHelper.onPayoutSuccess += AddProductOwnership;
         }
 
+        public static void Initialize() { }
+
         private static void AddProductOwnership(PurchaseResultArgs purchaseResultArgs)
         {
             if (!data.ownedProducts.ContainsKey(purchaseResultArgs.productID))
