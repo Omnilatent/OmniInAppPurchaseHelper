@@ -4,68 +4,71 @@ using UnityEngine;
 using LitJson;
 using Omnilatent.InAppPurchase;
 
-/// <summary>
-/// Remember owned products so restore purchase does not restore multiple times
-/// </summary>
-public static class RestorePurchaseHelper
+namespace Omnilatent.InAppPurchase
 {
-    public class Data
+    /// <summary>
+    /// Remember owned products so restore purchase does not restore multiple times
+    /// </summary>
+    public static class RestorePurchaseHelper
     {
-        public Dictionary<string, int> ownedProducts = new Dictionary<string, int>();
-        public string version;
-    }
-
-    const string prefKeyData = "IAP_DATA";
-    const string dataVersion = "1";
-    static Data data;
-
-    #region Init
-    static RestorePurchaseHelper()
-    {
-        Load();
-        InAppPurchaseHelper.onPayoutSuccess += AddProductOwnership;
-    }
-
-    private static void AddProductOwnership(PurchaseResultArgs purchaseResultArgs)
-    {
-        if (!data.ownedProducts.ContainsKey(purchaseResultArgs.productID))
+        public class Data
         {
-            data.ownedProducts.Add(purchaseResultArgs.productID, 1);
+            public Dictionary<string, int> ownedProducts = new Dictionary<string, int>();
+            public string version;
         }
-    }
 
-    static void Load()
-    {
-        var textData = PlayerPrefs.GetString(prefKeyData, string.Empty);
-        if (!string.IsNullOrEmpty(textData))
+        const string prefKeyData = "IAP_DATA";
+        const string dataVersion = "1";
+        static Data data;
+
+        #region Init
+        static RestorePurchaseHelper()
         {
-            data = JsonMapper.ToObject<Data>(textData);
+            Load();
+            InAppPurchaseHelper.onPayoutSuccess += AddProductOwnership;
         }
-        else
+
+        private static void AddProductOwnership(PurchaseResultArgs purchaseResultArgs)
         {
-            data = new Data();
-            Save();
+            if (!data.ownedProducts.ContainsKey(purchaseResultArgs.productID))
+            {
+                data.ownedProducts.Add(purchaseResultArgs.productID, 1);
+            }
         }
-    }
 
-    static void Save()
-    {
-        data.version = dataVersion;
-        var textData = DataToString();
-
-        PlayerPrefs.SetString(prefKeyData, textData);
-        PlayerPrefs.Save();
-    }
-
-    public static string DataToString() { return JsonMapper.ToJson(data); }
-    #endregion
-
-    public static bool HasRestoredProduct(PurchaseResultArgs resultArgs)
-    {
-        if (data.ownedProducts.ContainsKey(resultArgs.productID))
+        static void Load()
         {
-            return true;
+            var textData = PlayerPrefs.GetString(prefKeyData, string.Empty);
+            if (!string.IsNullOrEmpty(textData))
+            {
+                data = JsonMapper.ToObject<Data>(textData);
+            }
+            else
+            {
+                data = new Data();
+                Save();
+            }
         }
-        return false;
+
+        static void Save()
+        {
+            data.version = dataVersion;
+            var textData = DataToString();
+
+            PlayerPrefs.SetString(prefKeyData, textData);
+            PlayerPrefs.Save();
+        }
+
+        public static string DataToString() { return JsonMapper.ToJson(data); }
+        #endregion
+
+        public static bool HasRestoredProduct(PurchaseResultArgs resultArgs)
+        {
+            if (data.ownedProducts.ContainsKey(resultArgs.productID))
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }
