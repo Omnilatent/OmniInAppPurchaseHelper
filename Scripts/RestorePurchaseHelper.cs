@@ -23,6 +23,15 @@ public static class RestorePurchaseHelper
     static RestorePurchaseHelper()
     {
         Load();
+        InAppPurchaseHelper.onPayoutSuccess += AddProductOwnership;
+    }
+
+    private static void AddProductOwnership(PurchaseResultArgs purchaseResultArgs)
+    {
+        if (!data.ownedProducts.ContainsKey(purchaseResultArgs.productID))
+        {
+            data.ownedProducts.Add(purchaseResultArgs.productID, 1);
+        }
     }
 
     static void Load()
@@ -55,7 +64,6 @@ public static class RestorePurchaseHelper
     {
         if (data.ownedProducts.ContainsKey(resultArgs.productID))
         {
-            Debug.Log("Already restored this product, won't restore again.");
             return true;
         }
         return false;

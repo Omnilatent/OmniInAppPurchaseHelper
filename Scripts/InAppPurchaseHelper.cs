@@ -43,6 +43,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     public delegate void PurchaseCompleteDelegate(PurchaseResultArgs purchaseResultArgs);
     PurchaseCompleteDelegate onNextPurchaseComplete; //This handle only get callback once, will be removed after callback
     public static PurchaseCompleteDelegate persistentOnPurchaseCompleteCallback; //always callback on purchase
+    public static PurchaseCompleteDelegate onPayoutSuccess; //callback on payout successful
 
     /// <summary>
     /// Callback on initialize complete. Pass true if initialize successfully.
@@ -494,11 +495,26 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     void InvokeCallbackClearNextPurchaseCallback(PurchaseResultArgs resultArgs)
     {
-        persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
+        //if manual purchase, always call persistentOnPurchaseCompleteCallback
         if (onNextPurchaseComplete != null)
         {
+            persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
             onNextPurchaseComplete.Invoke(resultArgs);
             onNextPurchaseComplete = null;
+        }
+        else
+        {
+            //if restoring purchase, check product ownership before calling persistentOnPurchaseCompleteCallback
+            if (RestorePurchaseHelper.HasRestoredProduct(resultArgs))
+            {
+                Debug.Log("Already restored this product, won't restore again.");
+                PurchaseResultArgs alreadyRestoreResultArgs = new PurchaseResultArgs(resultArgs.productID, false, "This product has already been restored.");
+                persistentOnPurchaseCompleteCallback?.Invoke(alreadyRestoreResultArgs);
+            }
+            else
+            {
+                persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
+            }
         }
     }
 
