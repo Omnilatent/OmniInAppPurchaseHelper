@@ -1,4 +1,13 @@
 ===
+v2.1.0
+- Add support for Apple App Store:
+ + IAP product data: add field Apple App store product ID.
+- Upgrade product data type & subtype no longer automatic via OnValidate, will need to be called manually from menu item.
+- Invoke callback combine into same function. add invoke callback in purchase failed of IStoreListener.
+- Debug feature consume all non-consumable products: toggle debug consume all to on, then restart app once to consume all purchases, then restart app again.
+- Add loading when processing purchase because iOS process purchase take a lot of time. time out processing 15 seconds.
+
+===
 v2.0.0 (2022/01/12)
 - Update to unity IAP 4.1.2:
 - Change check receipt: don't use Cross Platform Validator anymore, use Product.hasReceipt instead.
