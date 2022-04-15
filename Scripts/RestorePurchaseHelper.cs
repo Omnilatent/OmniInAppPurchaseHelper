@@ -35,6 +35,7 @@ namespace Omnilatent.InAppPurchase
             if (!data.ownedProducts.ContainsKey(purchaseResultArgs.productID))
             {
                 data.ownedProducts.Add(purchaseResultArgs.productID, 1);
+                Save();
             }
         }
 
