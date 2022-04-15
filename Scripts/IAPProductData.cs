@@ -89,7 +89,8 @@ public class IAPProductData : ScriptableObject
 public class Payout
 {
     public int quantity;
-    public PayoutTypeEnum payoutType;
+    [SerializeField] private PayoutTypeEnum payoutType;
+    public PayoutTypeEnum PayoutType { get => payoutType; set => payoutType = value; }
     [SerializeField] string subtypeId;
 
     [Header("Deprecated fields, do not use.")]
@@ -112,13 +113,13 @@ public class Payout
     {
         upgradeType = false;
         upgradeSubtype = false;
-        if (payoutType == PayoutTypeEnum.NotSet && type != 0)
+        if (PayoutType == PayoutTypeEnum.NotSet && type != 0)
         {
             if (Enum.IsDefined(typeof(PayoutTypeEnum), (int)type))
             {
-                if (payoutType != (PayoutTypeEnum)(int)type)
+                if (PayoutType != (PayoutTypeEnum)(int)type)
                 {
-                    payoutType = (PayoutTypeEnum)(int)type;
+                    PayoutType = (PayoutTypeEnum)(int)type;
                     upgradeType = true;
                 }
             }
