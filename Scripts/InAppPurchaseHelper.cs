@@ -508,7 +508,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             //if restoring purchase, check product ownership before calling persistentOnPurchaseCompleteCallback
             if (RestorePurchaseHelper.HasRestoredProduct(resultArgs))
             {
-                Debug.Log("Already restored this product, won't restore again.");
+                Debug.Log($"Already restored product '{resultArgs.productID}', won't restore again.");
                 PurchaseResultArgs alreadyRestoreResultArgs = new PurchaseResultArgs(resultArgs.productID, false, "This product has already been restored.");
                 persistentOnPurchaseCompleteCallback?.Invoke(alreadyRestoreResultArgs);
             }
