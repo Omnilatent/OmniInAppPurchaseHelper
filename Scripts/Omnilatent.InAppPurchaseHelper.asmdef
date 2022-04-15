@@ -1,5 +1,6 @@
 {
     "name": "Omnilatent.InAppPurchaseHelper",
+    "rootNamespace": "",
     "references": [
         "Unity.TextMeshPro",
         "Omnilatent.AdsManager",
@@ -9,7 +10,8 @@
         "UnityEngine.Purchasing.Stores",
         "UnityEngine.Purchasing.Security",
         "UnityEngine.Purchasing.SecurityCore",
-        "UnityEngine.Purchasing.SecurityStub"
+        "UnityEngine.Purchasing.SecurityStub",
+        "LitJSON"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
