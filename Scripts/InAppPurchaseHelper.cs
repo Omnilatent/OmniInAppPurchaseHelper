@@ -60,6 +60,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     Dictionary<string, SubscriptionManager> subscriptionManagers = new Dictionary<string, SubscriptionManager>();
     bool processingPurchase = false;
     bool debugWillConsumeAllNonConsumable = false; //If set to true before initializing, will consume all non-consumable product to allow re-purchasing.
+    bool hasReportedReadyError = false;
 
     static InAppPurchaseHelper _instance;
 
@@ -140,9 +141,13 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     public bool IsInitialized()
     {
         // Only say we are initialized if both the Purchasing references are set.
-        bool value = m_StoreController != null && m_StoreExtensionProvider != null;
-        if (!value) Debug.Log("IAP Helper not initialized");
-        return value;
+        bool ready = m_StoreController != null && m_StoreExtensionProvider != null;
+        if (!ready && !hasReportedReadyError)
+        {
+            Debug.Log("IAP Helper not initialized");
+            hasReportedReadyError = true;
+        }
+        return ready;
     }
 
     //Example code
