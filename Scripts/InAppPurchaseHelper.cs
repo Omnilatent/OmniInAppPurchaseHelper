@@ -248,8 +248,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
                 if (processingPurchase)
                 {
-                    onToggleLoading?.Invoke(false);
-                    processingPurchase = false;
+                    PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, $"Purchase {productId} self timed out. Please check internet connection or try again later.", PurchaseFailureReason.PurchasingUnavailable);
+                    OnPurchaseFailed(purchaseResultArgs);
                     var e = new System.Exception("Processing purchase self timed out.");
                     Debug.LogException(e);
                     onLogException?.Invoke(e);
@@ -257,14 +257,14 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             }
             else
             {
-                string msg = $"BuyProduct {productId} failed. Product is either not found or not available for purchase.";
+                string msg = $"Purchase {productId} failed. Product not found or not available.";
                 PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.ProductUnavailable);
                 OnPurchaseFailed(purchaseResultArgs);
             }
         }
         else
         {
-            string msg = $"BuyProduct {productId} failed. IAP was not initialized. Please check internet connection and restart the app.";
+            string msg = $"Purchase {productId} failed. IAP not initialized. Please check internet connection or try again later.";
             PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.PurchasingUnavailable);
             OnPurchaseFailed(purchaseResultArgs);
         }
@@ -493,7 +493,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         string logMessage = string.Empty;
         if (resultArgs.reason != null)
         {
-            logMessage = resultArgs.reason.ToString();
+            logMessage = $"{resultArgs.reason}_{resultArgs.message}";
         }
         LogError(logMessage);
         InvokeCallbackClearNextPurchaseCallback(resultArgs);
@@ -616,6 +616,10 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     static void LogError(string msg)
     {
         Debug.LogError(msg);
+        if (msg.Length >= 40)
+        {
+            msg = msg.Substring(0, 39);
+        }
         FirebaseManager.LogEvent("IAP_Error", "message", msg);
     }
 }
