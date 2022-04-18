@@ -231,29 +231,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
                 onToggleLoading?.Invoke(true);
                 processingPurchase = true;
                 m_StoreController.InitiatePurchase(product);
-
-                //Wait timeout
-                float timeout = 15f;
-                var checkInterval = new WaitForSecondsRealtime(0.1f);
-                while (timeout > 0f)
-                {
-                    if (!processingPurchase)
-                    {
-                        timeout = 0f;
-                        break;
-                    }
-                    timeout -= 0.1f;
-                    yield return checkInterval;
-                }
-
-                if (processingPurchase)
-                {
-                    PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, $"Purchase {productId} self timed out. Please check internet connection or try again later.", PurchaseFailureReason.PurchasingUnavailable);
-                    OnPurchaseFailed(purchaseResultArgs);
-                    var e = new System.Exception("Processing purchase self timed out.");
-                    Debug.LogException(e);
-                    onLogException?.Invoke(e);
-                }
             }
             else
             {
@@ -267,6 +244,32 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             string msg = $"Purchase {productId} failed. IAP not initialized. Please check internet connection or try again later.";
             PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.PurchasingUnavailable);
             OnPurchaseFailed(purchaseResultArgs);
+        }
+    }
+
+    IEnumerator SelfTimeoutPurchase(string productId)
+    {
+        //Wait timeout
+        float timeout = 15f;
+        var checkInterval = new WaitForSecondsRealtime(0.1f);
+        while (timeout > 0f)
+        {
+            if (!processingPurchase)
+            {
+                timeout = 0f;
+                break;
+            }
+            timeout -= 0.1f;
+            yield return checkInterval;
+        }
+
+        if (processingPurchase)
+        {
+            PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, $"Purchase {productId} self timed out. Please check internet connection or try again later.", PurchaseFailureReason.PurchasingUnavailable);
+            OnPurchaseFailed(purchaseResultArgs);
+            var e = new System.Exception("Processing purchase self timed out.");
+            Debug.LogException(e);
+            onLogException?.Invoke(e);
         }
     }
 

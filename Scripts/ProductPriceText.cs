@@ -11,7 +11,25 @@ public class ProductPriceText : MonoBehaviour
     private void Start()
     {
         if (productData != null)
+        {
+            if (InAppPurchaseHelper.Instance.IsInitialized())
+            {
+                Setup(productData);
+            }
+            else
+            {
+                SetTextLoading();
+                InAppPurchaseHelper.Instance.onInitializeComplete += OnIAPInit;
+            }
+        }
+    }
+
+    void OnIAPInit(bool success)
+    {
+        if (success)
+        {
             Setup(productData);
+        }
     }
 
     public void Setup(IAPProductData iAPProductData)
@@ -23,12 +41,22 @@ public class ProductPriceText : MonoBehaviour
         }
         else
         {
-            textPrice.text = "Loading";
+            SetTextLoading();
         }
+    }
+
+    void SetTextLoading()
+    {
+        textPrice.text = "Loading";
     }
 
     private void Reset()
     {
         textPrice = GetComponent<TMP_Text>();
+    }
+
+    private void OnDestroy()
+    {
+        InAppPurchaseHelper.Instance.onInitializeComplete -= OnIAPInit;
     }
 }
