@@ -48,7 +48,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             //If the purchase is deemed invalid, the validator throws an IAPSecurityException.
             catch (IAPSecurityException reason)
             {
-                Debug.Log($"Invalid receipt: {reason}");
+                Debug.Log($"Invalid receipt for '{purchasedProduct.definition.id}': {reason}");
                 return false;
             }
         }
