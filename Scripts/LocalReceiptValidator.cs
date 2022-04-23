@@ -37,7 +37,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         if (!InAppPurchaseHelper.Instance.IsInitialized()) return false;
 
         //If we the validator doesn't support the current store, we assume the purchase is valid
-        if (IsCurrentStoreSupportedByValidator())
+        if (IsCurrentStoreSupportedByValidator() && purchasedProduct.hasReceipt)
         {
             try
             {
