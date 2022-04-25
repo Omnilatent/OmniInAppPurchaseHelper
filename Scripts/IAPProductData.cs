@@ -105,6 +105,7 @@ public class Payout
     {
         upgradeType = false;
         upgradeSubtype = false;
+#pragma warning disable CS0618 // Code required to update obsolete field, no need to warn
         if (PayoutType == PayoutTypeEnum.NotSet && type != 0)
         {
             if (Enum.IsDefined(typeof(PayoutTypeEnum), (int)type))
@@ -127,5 +128,6 @@ public class Payout
             upgradeSubtype = true;
         }
         return upgradeType || upgradeSubtype;
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }
