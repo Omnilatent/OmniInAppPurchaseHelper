@@ -334,8 +334,11 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         }
 
         // If we are running on an Apple device ... 
-        if (Application.platform == RuntimePlatform.IPhonePlayer ||
-            Application.platform == RuntimePlatform.OSXPlayer)
+        bool isIOS = false;
+#if UNITY_IOS
+        isIOS = true;
+#endif
+        if (isIOS)
         {
             // ... begin restoring purchases
             Debug.Log("RestorePurchases started ...");
