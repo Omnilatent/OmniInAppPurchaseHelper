@@ -1,7 +1,7 @@
 {
     "name": "com.omnilatent.inappurchasehelper",
     "displayName": "Omni In App Purchase Helper",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "unity": "2020.3",
     "description": "Helper for Google Billing IAP",
     "keywords": ["iap"],

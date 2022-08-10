@@ -1,3 +1,7 @@
+## v2.2.1
+Fixes:
+- Remove using RuntimePlatform because it lacks iPad, check iOS platform using scripting define symbol.
+
 ## v2.2.0
 New features:
 - Restore purchase helper to check restored purchase.
