@@ -36,6 +36,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     [SerializeField] List<string> payoutSubtypes;
     [SerializeField] bool allowUnexpectedSubtype;
 
+    [SerializeField] bool initializeAutomatically = true;
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
     private static IExtensionProvider m_StoreExtensionProvider; // The store-specific Purchasing subsystems.
     IGooglePlayStoreExtensions m_GooglePlayStoreExtensions;
@@ -64,8 +65,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     static InAppPurchaseHelper _instance;
 
-    [Obsolete("Use Instance (capitalized I) instead", true)]
-    public static InAppPurchaseHelper instance => Instance;
     public static InAppPurchaseHelper Instance
     {
         get
@@ -93,6 +92,13 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     void Start()
     {
+        if (!initializeAutomatically) return;
+        Initialize();
+    }
+
+    public async void Initialize()
+    {
+        if (IsInitialized()) return;
         // If we haven't set up the Unity Purchasing reference
         if (m_StoreController == null)
         {
@@ -138,6 +144,9 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         UnityPurchasing.Initialize(this, builder);
     }
 
+    /// <summary>
+    /// Check if Store controller & Store extension provider has been initialized.
+    /// </summary>
     public bool IsInitialized()
     {
         // Only say we are initialized if both the Purchasing references are set.
