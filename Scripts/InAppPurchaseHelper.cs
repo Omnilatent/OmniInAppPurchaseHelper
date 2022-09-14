@@ -6,6 +6,9 @@ using UnityEngine.Purchasing.Security;
 using System.Linq;
 using Omnilatent.InAppPurchase;
 using System.Collections;
+using Unity.Services.Core;
+using Unity.Services.Core.Environments;
+using System.Threading.Tasks;
 
 namespace Omnilatent.InAppPurchase
 {
@@ -37,6 +40,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     [SerializeField] bool allowUnexpectedSubtype;
 
     [SerializeField] bool initializeAutomatically = true;
+    [SerializeField] bool initializeUnityService = true;
+
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
     private static IExtensionProvider m_StoreExtensionProvider; // The store-specific Purchasing subsystems.
     IGooglePlayStoreExtensions m_GooglePlayStoreExtensions;
@@ -102,12 +107,38 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         // If we haven't set up the Unity Purchasing reference
         if (m_StoreController == null)
         {
+            if (initializeUnityService)
+            {
+                await InitializeUnityServiceAsync();
+            }
             // Begin to configure our connection to Purchasing
             InitializePurchasing();
         }
 
         //add no ads listener earlier: because initiating IAP take some time so splash ads was shown before no ads listener could be added in IAP initiation process
         IAPProcessor.SetupNoAds();
+    }
+
+    async Task InitializeUnityServiceAsync()
+    {
+        if (UnityServices.State == ServicesInitializationState.Initialized || UnityServices.State == ServicesInitializationState.Initializing)
+        {
+            Debug.Log($"Unity Services has already initialized or is initializing. Unity Services state: {UnityServices.State}.");
+            return;
+        }
+        string environment = "production";
+        try
+        {
+            var options = new InitializationOptions()
+                .SetEnvironmentName(environment);
+
+            await UnityServices.InitializeAsync(options);
+        }
+        catch (Exception exception)
+        {
+            // An error occurred during services initialization.
+            LogError(exception.Message);
+        }
     }
 
     public void InitializePurchasing()

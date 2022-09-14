@@ -1,3 +1,16 @@
+## v2.3.0
+News:
+- Add compatibility with Unity In App Purchasing 4.4.1:
+Changes to initialization process:
+	- Add option to initialize Unity Service.
+	- After Unity Service has been initialized, initialize purchasing module.
+- Add option to initialize manually.
+
+Changes:
+- Deprecated variable normal case instance.
+
+- Dependency change: require Unity Services Core 1.4.0.
+
 ## v2.2.1
 Fixes:
 - Remove using RuntimePlatform because it lacks iPad, check iOS platform using scripting define symbol.

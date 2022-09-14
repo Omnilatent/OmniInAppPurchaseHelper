@@ -11,7 +11,9 @@
         "UnityEngine.Purchasing.Security",
         "UnityEngine.Purchasing.SecurityCore",
         "UnityEngine.Purchasing.SecurityStub",
-        "LitJSON"
+        "LitJSON",
+        "Unity.Services.Core",
+        "Unity.Services.Core.Environments"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

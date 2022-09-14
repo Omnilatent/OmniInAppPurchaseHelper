@@ -1,7 +1,8 @@
 Git repository: https://github.com/Omnilatent/OmniInAppPurchaseHelper
 
 ## Dependencies:
-- Unity In App Purchasing 4.1.2.
+- Unity In App Purchasing 4.4.1.
+- Unity Services Core 1.4.0.
 
 ## SETUP:
 Setup Unity IAP:
