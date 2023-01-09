@@ -51,6 +51,13 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     public static PurchaseCompleteDelegate persistentOnPurchaseCompleteCallback; //always callback on purchase
     public static PurchaseCompleteDelegate onPayoutSuccess; //callback on payout successful
 
+    public delegate void PurchaseStartDelegate(string productId);
+
+    /// <summary>
+    /// Callback when IAP process begin. E.g: user clicks on a purchase button.
+    /// </summary>
+    public static PurchaseStartDelegate onPurchaseStart;
+
     /// <summary>
     /// Callback on initialize complete. Pass true if initialize successfully.
     /// </summary>
@@ -231,6 +238,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     /// <param name="purchaseCompleteDelegate">Callback on purchase complete, callback should display a message dialog displaying purchase result</param>
     public void BuyProduct(string productId, PurchaseCompleteDelegate purchaseCompleteDelegate)
     {
+        onPurchaseStart?.Invoke(productId);
         StartCoroutine(WaitForInitialize(productId, purchaseCompleteDelegate));
     }
 
