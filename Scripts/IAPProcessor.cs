@@ -10,7 +10,7 @@ public class IAPProcessor
 {
     public const string dataFolder = "ProductData";
     public const string PREF_NO_ADS = "PURCHASE_ADS";
-    
+
     static bool hasAddedNoAdsDelegate;
 
     public static void Init()
@@ -20,12 +20,14 @@ public class IAPProcessor
 
     public static void SetupNoAds()
     {
+#if OMNILATENT_ADS_MANAGER
         if (!hasAddedNoAdsDelegate)
         {
             AdsManager.Instance.noAds -= IAPProcessor.CheckNoAds;
             AdsManager.Instance.noAds += IAPProcessor.CheckNoAds;
             hasAddedNoAdsDelegate = true;
         }
+#endif
     }
 
     public static IAPProductData GetProductData(string id)
@@ -68,9 +70,11 @@ public class IAPProcessor
 
     public static void HideBannerOnCheckNoAd()
     {
+#if OMNILATENT_ADS_MANAGER
         if (CheckNoAds())
         {
             AdsManager.Instance.HideBanner();
         }
+#endif
     }
 }
