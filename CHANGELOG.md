@@ -1,3 +1,8 @@
+## v2.4.0
+News:
+- Independence from Ads Manager: codes that refer to Omnilatent Ads Manager will be wrapped in scripting define symbol '#if OMNILATENT_ADS_MANAGER'.
+  Notes: OMNILATENT_ADS_MANAGER is automatically added to project by Omni Ads Manager 2.7.2.
+
 ## v2.3.0
 News:
 - Add compatibility with Unity In App Purchasing 4.4.1:

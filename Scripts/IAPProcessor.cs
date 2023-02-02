@@ -6,75 +6,78 @@ using UnityEngine.Purchasing;
 /// <summary>
 /// Handle Remove Ad
 /// </summary>
-public class IAPProcessor
+namespace Omnilatent.InAppPurchase
 {
-    public const string dataFolder = "ProductData";
-    public const string PREF_NO_ADS = "PURCHASE_ADS";
-
-    static bool hasAddedNoAdsDelegate;
-
-    public static void Init()
+    public class IAPProcessor
     {
-        SetupNoAds();
-    }
+        public const string dataFolder = "ProductData";
+        public const string PREF_NO_ADS = "PURCHASE_ADS";
 
-    public static void SetupNoAds()
-    {
+        static bool hasAddedNoAdsDelegate;
+
+        public static void Init()
+        {
+            SetupNoAds();
+        }
+
+        public static void SetupNoAds()
+        {
 #if OMNILATENT_ADS_MANAGER
-        if (!hasAddedNoAdsDelegate)
-        {
-            AdsManager.Instance.noAds -= IAPProcessor.CheckNoAds;
-            AdsManager.Instance.noAds += IAPProcessor.CheckNoAds;
-            hasAddedNoAdsDelegate = true;
-        }
+            if (!hasAddedNoAdsDelegate)
+            {
+                AdsManager.Instance.noAds -= IAPProcessor.CheckNoAds;
+                AdsManager.Instance.noAds += IAPProcessor.CheckNoAds;
+                hasAddedNoAdsDelegate = true;
+            }
 #endif
-    }
-
-    public static IAPProductData GetProductData(string id)
-    {
-        IAPProductData productData = Resources.Load<IAPProductData>($"{dataFolder}/{id}");
-        if (productData == null) { Debug.LogError($"Product not found {id}"); }
-        return productData;
-    }
-
-    public static bool OnPurchase(PurchaseEventArgs args)
-    {
-        string id = args.purchasedProduct.definition.id;
-        IAPProductData productData = GetProductData(id);
-        bool isValidPurchase = true;
-        if (productData == null)
-        {
-            //invalid product
-            Debug.LogError($"Product data {id} does not exist in Resources/ProductData folder.");
-            isValidPurchase = false;
         }
-        else
-        {
-        }
-        return isValidPurchase;
-        //SS.View.Manager.Add(PopupController.POPUP_SCENE_NAME, new PopupData(PopupType.OK, msg));
-    }
 
-    /// <returns>Return true if user has purchased remove ads</returns>
-    public static bool CheckNoAds()
-    {
-        if (PlayerPrefs.GetInt(PREF_NO_ADS, 0) == 1)
+        public static IAPProductData GetProductData(string id)
         {
-            return true;
+            IAPProductData productData = Resources.Load<IAPProductData>($"{dataFolder}/{id}");
+            if (productData == null) { Debug.LogError($"Product not found {id}"); }
+            return productData;
         }
-        else
-        {
-            return false;
-        }
-    }
 
-    public static void HideBannerOnCheckNoAd()
-    {
+        public static bool OnPurchase(PurchaseEventArgs args)
+        {
+            string id = args.purchasedProduct.definition.id;
+            IAPProductData productData = GetProductData(id);
+            bool isValidPurchase = true;
+            if (productData == null)
+            {
+                //invalid product
+                Debug.LogError($"Product data {id} does not exist in Resources/ProductData folder.");
+                isValidPurchase = false;
+            }
+            else
+            {
+            }
+            return isValidPurchase;
+            //SS.View.Manager.Add(PopupController.POPUP_SCENE_NAME, new PopupData(PopupType.OK, msg));
+        }
+
+        /// <returns>Return true if user has purchased remove ads</returns>
+        public static bool CheckNoAds()
+        {
+            if (PlayerPrefs.GetInt(PREF_NO_ADS, 0) == 1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public static void HideBannerOnCheckNoAd()
+        {
 #if OMNILATENT_ADS_MANAGER
-        if (CheckNoAds())
-        {
-            AdsManager.Instance.HideBanner();
-        }
+            if (CheckNoAds())
+            {
+                AdsManager.Instance.HideBanner();
+            }
 #endif
+        }
     }
 }
