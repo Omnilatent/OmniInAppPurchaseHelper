@@ -68,7 +68,10 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     /// </summary>
     public static Action<bool> onToggleLoading;
 
+    public delegate void LogEventDelegate(string eventName, string eventParameter, string message);
+    public static LogEventDelegate onLogEvent;
     public static Action<System.Exception> onLogException;
+    public static LogEventDelegate onLogError;
 
     Dictionary<string, SubscriptionManager> subscriptionManagers = new Dictionary<string, SubscriptionManager>();
     bool processingPurchase = false;
@@ -461,6 +464,14 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         onInitializeComplete?.Invoke(false);
     }
 
+    public void OnInitializeFailed(InitializationFailureReason error, string message)
+    {
+        // Purchasing set-up has not succeeded. Check error for reason. Consider sharing this reason with the user.
+        Debug.Log("OnInitializeFailed InitializationFailureReason:" + error + "\n\nMessage:" + message);
+        LogError($"{error}:{message}");
+        onInitializeComplete?.Invoke(false);
+    }
+
     public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
     {
         onToggleLoading?.Invoke(false);
@@ -527,12 +538,15 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         Debug.Log(string.Format("OnPurchaseFailed: FAIL. Product: '{0}', PurchaseFailureReason: {1}", product.definition.storeSpecificId, failureReason));
         if (failureReason == PurchaseFailureReason.UserCancelled)
         {
-            FirebaseManager.LogEvent("IAP_Cancelled", "message", failureReason.ToString());
+            // FirebaseManager.LogEvent("IAP_Cancelled", "message", failureReason.ToString());
+            onLogEvent?.Invoke("IAP_Cancelled", "message", failureReason.ToString());
         }
         else
         {
-            FirebaseManager.LogCrashlytics(failureReason.ToString());
-            FirebaseManager.LogException(new Exception("IAP Purchase Failed"));
+            // FirebaseManager.LogCrashlytics(failureReason.ToString());
+            // FirebaseManager.LogException(new Exception("IAP Purchase Failed"));
+            LogError(failureReason.ToString());
+            onLogException?.Invoke(new Exception("IAP Purchase Failed"));
         }
         if (processingPurchase)
         {
@@ -674,6 +688,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         {
             msg = msg.Substring(0, 39);
         }
-        FirebaseManager.LogEvent("IAP_Error", "message", msg);
+
+        onLogError?.Invoke("IAP_Error", "message", msg);
+        // FirebaseManager.LogEvent("IAP_Error", "message", msg);
     }
 }
