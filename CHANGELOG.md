@@ -1,3 +1,15 @@
+## 2.5.0
+News:
+- Added compatibility with Unity IAP 4.6.0. 
+- Removed dependency on Firebase, moved Firebase's code to HandleIAPEvent in extra files.
+
+Upgrade 2.4.x - 2.5.x notices:
+- If you want to keep Firebase logging IAP event, please update the Handle IAP Event script to handle the callbacks (by updating the script yourself or re-importing the script from extra package). 
+
+## 2.4.1
+Changes:
+- Update extra file: handle iap event will stop app open ad from showing when resuming app after purchasing. (Omni Ads Manager)
+
 ## v2.4.0
 News:
 - Independence from Ads Manager: codes that refer to Omnilatent Ads Manager will be wrapped in scripting define symbol '#if OMNILATENT_ADS_MANAGER'.
