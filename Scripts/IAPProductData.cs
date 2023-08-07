@@ -30,6 +30,7 @@ public class IAPProductData : ScriptableObject
     [Tooltip("Default Subscription period by days, only for Subscription products")]
     public int defaultSubscriptionPeriodDays;
 
+    public string displayName;
     public Payout[] payouts = new Payout[] { new Payout() };
 
     Product GetProduct()
