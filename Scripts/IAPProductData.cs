@@ -96,7 +96,7 @@ public class Payout
     [FormerlySerializedAs("subtype")]
     [SerializeField] int _subtypeInt = 0;
 
-    public string subtype { get => subtypeId; }
+    public string subtype { get => subtypeId; set => subtypeId = value; }
 
     /// <summary>
     /// Update payout type & subtype when upgrading from Omni IAP 1.1.1 to 2.0.0
