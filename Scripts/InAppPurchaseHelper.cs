@@ -75,6 +75,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     Dictionary<string, SubscriptionManager> subscriptionManagers = new Dictionary<string, SubscriptionManager>();
     bool processingPurchase = false;
+    public bool ProcessingPurchase { get => processingPurchase; }
     bool debugWillConsumeAllNonConsumable = false; //If set to true before initializing, will consume all non-consumable product to allow re-purchasing.
     bool hasReportedReadyError = false;
 
