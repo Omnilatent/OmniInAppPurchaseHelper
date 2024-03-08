@@ -75,7 +75,7 @@ namespace Omnilatent.InAppPurchase
 #if OMNILATENT_ADS_MANAGER
             if (CheckNoAds())
             {
-                AdsManager.Instance.HideBanner();
+                //AdsManager.Instance.HideBanner();
             }
 #endif
         }
