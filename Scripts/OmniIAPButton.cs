@@ -13,31 +13,31 @@ namespace Omnilatent.InAppPurchase
 
     public class OmniIAPButton : MonoBehaviour
     {
-        [SerializeField] IAPProductData productData;
-        [SerializeField] ProductPriceText productPriceText;
-        [SerializeField] PurchaseEvent onPurchase;
-        [SerializeField] bool disableIfOwned;
-        [SerializeField] bool disableIfAdRemoved;
+        [SerializeField] protected IAPProductData productData;
+        [SerializeField] protected ProductPriceText productPriceText;
+        [SerializeField] protected PurchaseEvent onPurchase;
+        [SerializeField] protected bool disableIfOwned;
+        [SerializeField] protected bool disableIfAdRemoved;
 
-        private void Start()
+        protected virtual void Start()
         {
             if (productPriceText != null)
                 productPriceText.Setup(productData);
             CheckDisableIfOwned();
         }
 
-        public void OnClick()
+        public virtual void OnClick()
         {
             InAppPurchaseHelper.Instance.BuyProduct(productData.ProductId, OnPurchaseProduct);
         }
 
-        void OnPurchaseProduct(PurchaseResultArgs purchaseResultArgs)
+        protected virtual void OnPurchaseProduct(PurchaseResultArgs purchaseResultArgs)
         {
             onPurchase?.Invoke(purchaseResultArgs);
             CheckDisableIfOwned();
         }
 
-        void CheckDisableIfOwned()
+        protected virtual void CheckDisableIfOwned()
         {
             if ((disableIfOwned && productData.productType == UnityEngine.Purchasing.ProductType.NonConsumable && InAppPurchaseHelper.CheckReceipt(productData.ProductId))
                 || (disableIfAdRemoved && IAPProcessor.CheckNoAds()))
