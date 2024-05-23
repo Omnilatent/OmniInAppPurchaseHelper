@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Omnilatent.InAppPurchase.Editor
+namespace Omnilatent.InAppPurchase.EditorNS
 {
     public static class MenuItemEditor
     {

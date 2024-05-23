@@ -14,7 +14,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     {
         if (IsCurrentStoreSupportedByValidator())
         {
-#if !UNITY_EDITOR
+#if OMNILATENT_IAP_HELPER
             var appleTangleData = m_UseAppleStoreKitTestCertificate ? AppleStoreKitTestTangle.Data() : AppleTangle.Data();
             m_Validator = new CrossPlatformValidator(GooglePlayTangle.Data(), appleTangleData, Application.identifier);
 #endif

@@ -4,11 +4,11 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 
-namespace Omnilatent.InAppPurchase.Editor
+namespace Omnilatent.InAppPurchase.EditorNS
 {
     public class ExtraPackageImporter
     {
-        [MenuItem("Tools/Omnilatent/IAP Helper/Import Extra Package")]
+        // [MenuItem("Tools/Omnilatent/IAP Helper/Import Extra Package")]
         public static void ImportExtraPackage()
         {
             string path = GetPackagePath("Assets/Omnilatent/OmniInAppPurchaseHelper/OmniIAPExtra.unitypackage", "OmniIAPExtra");
