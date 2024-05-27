@@ -1,3 +1,13 @@
+## 2.5.1
+News:
+- Add initial setup window to make sure essential files are imported. Update location of Tangle file to match Unity IAP 4.11. Add Scripting define symbol OMNILATENT_IAP_HELPER.
+- Add public property ProcessingPurchase.
+- Iap product data add displayName field.
+
+Changes:
+- Make class Iap Button and method protected virtual.
+- Set subtype field to public set to allow modification by script.
+
 ## 2.5.0
 News:
 - Added compatibility with Unity IAP 4.6.0. 
