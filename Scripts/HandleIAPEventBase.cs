@@ -1,5 +1,7 @@
 using System;
+#if JACAT_ADSMANAGER
 using JacatGames.JacatAdsManager.API;
+#endif
 using UnityEngine;
 
 namespace Omnilatent.InAppPurchase
@@ -25,6 +27,9 @@ namespace Omnilatent.InAppPurchase
                 #if OMNILATENT_ADS_MANAGER
                 AdsManager.Instance.noAds -= CheckNoAds;
                 AdsManager.Instance.noAds += CheckNoAds;
+                #endif
+                #if JACAT_ADSMANAGER
+                JacatAdsManager.Instance.SetRemoveAd(CheckNoAds());
                 #endif
                 hasAddedNoAdsDelegate = true;
             }

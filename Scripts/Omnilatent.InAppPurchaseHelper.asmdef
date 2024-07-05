@@ -13,7 +13,8 @@
         "UnityEngine.Purchasing.SecurityStub",
         "LitJSON",
         "Unity.Services.Core",
-        "Unity.Services.Core.Environments"
+        "Unity.Services.Core.Environments",
+        "JacatGames.JacatAdsManager"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
