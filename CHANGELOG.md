@@ -1,3 +1,8 @@
+## 2.5.2
+Changes:
+- Include HandleIAPEvent class in library namespace.
+- Make HandleIAPEventBase class to have consistent functions defined in the library. HandleIAPEvent class in extra files will implement HandleIAPEventBase.
+
 ## 2.5.1
 News:
 - Add initial setup window to make sure essential files are imported. Update location of Tangle file to match Unity IAP 4.11. Add Scripting define symbol OMNILATENT_IAP_HELPER.
