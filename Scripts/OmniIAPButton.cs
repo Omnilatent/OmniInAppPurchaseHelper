@@ -18,12 +18,21 @@ namespace Omnilatent.InAppPurchase
         [SerializeField] protected PurchaseEvent onPurchase;
         [SerializeField] protected bool disableIfOwned;
         [SerializeField] protected bool disableIfAdRemoved;
+        
+        [Tooltip("Listen to all purchase event to invoke disable event if it's a non consumable product")] [SerializeField]
+        protected bool _listenToGlobalPurchaseEvent;
+        [SerializeField] UnityEvent _onDisable;
+        [SerializeField] protected bool _deactivateSelfOnDisable = true;
 
         protected virtual void Start()
         {
             if (productPriceText != null)
                 productPriceText.Setup(productData);
             CheckDisableIfOwned();
+            if (_listenToGlobalPurchaseEvent)
+            {
+                InAppPurchaseHelper.persistentOnPurchaseCompleteCallback += OnGlobalPurchaseComplete;
+            }
         }
 
         public virtual void OnClick()
@@ -40,10 +49,33 @@ namespace Omnilatent.InAppPurchase
         protected virtual void CheckDisableIfOwned()
         {
             if ((disableIfOwned && productData.productType == UnityEngine.Purchasing.ProductType.NonConsumable && InAppPurchaseHelper.CheckReceipt(productData.ProductId))
-                || (disableIfAdRemoved && IAPProcessor.CheckNoAds()))
+                || (disableIfAdRemoved && InAppPurchaseHelper.Instance.IAPEventHandler.CheckNoAds()))
+            {
+                Disable();
+            }
+        }
+        
+        public void Disable()
+        {
+            if (_deactivateSelfOnDisable)
             {
                 gameObject.SetActive(false);
             }
+            
+            _onDisable.Invoke();
+        }
+        
+        protected virtual void OnGlobalPurchaseComplete(PurchaseResultArgs purchaseresultargs)
+        {
+            if (purchaseresultargs.productID == productData.ProductId)
+            {
+                CheckDisableIfOwned();
+            }
+        }
+        
+        protected virtual void OnDestroy()
+        {
+            InAppPurchaseHelper.persistentOnPurchaseCompleteCallback -= OnGlobalPurchaseComplete;
         }
     }
 }

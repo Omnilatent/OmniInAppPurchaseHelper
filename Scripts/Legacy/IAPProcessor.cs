@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Purchasing;
@@ -8,18 +9,23 @@ using UnityEngine.Purchasing;
 /// </summary>
 namespace Omnilatent.InAppPurchase
 {
+    [Obsolete]
     public class IAPProcessor
     {
+        [Obsolete]
         public const string dataFolder = "ProductData";
+        [Obsolete]
         public const string PREF_NO_ADS = "PURCHASE_ADS";
 
         static bool hasAddedNoAdsDelegate;
 
+        [Obsolete("Use HandleIAPEventBase instead")]
         public static void Init()
         {
             SetupNoAds();
         }
 
+        [Obsolete("Use HandleIAPEventBase instead")]
         public static void SetupNoAds()
         {
 #if OMNILATENT_ADS_MANAGER
@@ -32,16 +38,19 @@ namespace Omnilatent.InAppPurchase
 #endif
         }
 
+        [Obsolete]
         public static IAPProductData GetProductData(string id)
         {
-            IAPProductData productData = Resources.Load<IAPProductData>($"{dataFolder}/{id}");
+            /*IAPProductData productData = Resources.Load<IAPProductData>($"{dataFolder}/{id}");
             if (productData == null) { Debug.LogError($"Product not found {id}"); }
-            return productData;
+            return productData;*/
+            return InAppPurchaseHelper.GetProductData(id);
         }
 
+        [Obsolete]
         public static bool OnPurchase(PurchaseEventArgs args)
         {
-            string id = args.purchasedProduct.definition.id;
+            /*string id = args.purchasedProduct.definition.id;
             IAPProductData productData = GetProductData(id);
             bool isValidPurchase = true;
             if (productData == null)
@@ -53,31 +62,35 @@ namespace Omnilatent.InAppPurchase
             else
             {
             }
-            return isValidPurchase;
-            //SS.View.Manager.Add(PopupController.POPUP_SCENE_NAME, new PopupData(PopupType.OK, msg));
+            return isValidPurchase;*/
+            return InAppPurchaseHelper.CheckProductData(args);
         }
 
+        [Obsolete]
         /// <returns>Return true if user has purchased remove ads</returns>
         public static bool CheckNoAds()
         {
-            if (PlayerPrefs.GetInt(PREF_NO_ADS, 0) == 1)
+            return InAppPurchaseHelper.Instance.IAPEventHandler.CheckNoAds();
+            /*if (PlayerPrefs.GetInt(PREF_NO_ADS, 0) == 1)
             {
                 return true;
             }
             else
             {
                 return false;
-            }
+            }*/
         }
 
+        [Obsolete]
         public static void HideBannerOnCheckNoAd()
         {
-#if OMNILATENT_ADS_MANAGER
+/*#if OMNILATENT_ADS_MANAGER
             if (CheckNoAds())
             {
                 AdsManager.Instance.HideBanner();
             }
-#endif
+#endif*/
+            InAppPurchaseHelper.Instance.IAPEventHandler.HideBannerOnCheckNoAd();
         }
     }
 }
