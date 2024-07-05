@@ -364,6 +364,13 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         }
         return product;
     }
+    
+    public static IAPProductData GetProductData(string id)
+    {
+        IAPProductData productData = Resources.Load<IAPProductData>($"{dataFolder}/{id}");
+        if (productData == null) { Debug.LogError($"Product not found {id}"); }
+        return productData;
+    }
 
     public string GetPriceString(string productId)
     {
@@ -499,7 +506,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     {
         onToggleLoading?.Invoke(false);
         processingPurchase = false;
-        bool isValidPurchase = IAPProcessor.OnPurchase(args);
+        bool isValidPurchase = CheckProductData(args);
+        // bool isValidPurchase = IAPProcessor.OnPurchase(args);
         //if isValidPurchase was false, you should display an error message
 
         PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(args.purchasedProduct.definition.id, true);
@@ -544,6 +552,20 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         // to be reminded of this purchase at next app launch. Use PurchaseProcessingResult.Pending when still 
         // saving purchased products to the cloud, and when that save is delayed. 
         return PurchaseProcessingResult.Complete;
+    }
+    
+    public static bool CheckProductData(PurchaseEventArgs args)
+    {
+        string id = args.purchasedProduct.definition.id;
+        IAPProductData productData = GetProductData(id);
+        bool isValidPurchase = true;
+        if (productData == null)
+        {
+            //invalid product
+            Debug.LogError($"Product data {id} does not exist in Resources/ProductData folder.");
+            isValidPurchase = false;
+        }
+        return isValidPurchase;
     }
 
     public static bool CompareProductId(string productId, PurchaseEventArgs args)

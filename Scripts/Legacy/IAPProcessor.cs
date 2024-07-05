@@ -9,9 +9,12 @@ using UnityEngine.Purchasing;
 /// </summary>
 namespace Omnilatent.InAppPurchase
 {
+    [Obsolete]
     public class IAPProcessor
     {
+        [Obsolete]
         public const string dataFolder = "ProductData";
+        [Obsolete]
         public const string PREF_NO_ADS = "PURCHASE_ADS";
 
         static bool hasAddedNoAdsDelegate;
@@ -35,16 +38,19 @@ namespace Omnilatent.InAppPurchase
 #endif
         }
 
+        [Obsolete]
         public static IAPProductData GetProductData(string id)
         {
-            IAPProductData productData = Resources.Load<IAPProductData>($"{dataFolder}/{id}");
+            /*IAPProductData productData = Resources.Load<IAPProductData>($"{dataFolder}/{id}");
             if (productData == null) { Debug.LogError($"Product not found {id}"); }
-            return productData;
+            return productData;*/
+            return InAppPurchaseHelper.GetProductData(id);
         }
 
+        [Obsolete]
         public static bool OnPurchase(PurchaseEventArgs args)
         {
-            string id = args.purchasedProduct.definition.id;
+            /*string id = args.purchasedProduct.definition.id;
             IAPProductData productData = GetProductData(id);
             bool isValidPurchase = true;
             if (productData == null)
@@ -56,8 +62,8 @@ namespace Omnilatent.InAppPurchase
             else
             {
             }
-            return isValidPurchase;
-            //SS.View.Manager.Add(PopupController.POPUP_SCENE_NAME, new PopupData(PopupType.OK, msg));
+            return isValidPurchase;*/
+            return InAppPurchaseHelper.CheckProductData(args);
         }
 
         [Obsolete]

@@ -10,7 +10,7 @@ namespace Omnilatent.InAppPurchase.EditorNS
         [MenuItem("Tools/Omnilatent/IAP Helper/Upgrade ProductData v1 to v2")]
         public static void UpgradeProductDataTypeSubtype()
         {
-            var productDatas = Resources.LoadAll<IAPProductData>(IAPProcessor.dataFolder);
+            var productDatas = Resources.LoadAll<IAPProductData>(InAppPurchaseHelper.dataFolder);
             for (int i = 0; i < productDatas.Length; i++)
             {
                 productDatas[i].UpgradeTypeSubtype();

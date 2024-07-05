@@ -58,7 +58,7 @@ namespace Omnilatent.InAppPurchase
 
         protected virtual void PayoutPurchase(PurchaseResultArgs args)
         {
-            var productData = IAPProcessor.GetProductData(args.productID);
+            var productData = InAppPurchaseHelper.GetProductData(args.productID);
             foreach (var payout in productData.payouts)
             {
                 if (payout.PayoutType == PayoutTypeEnum.Currency)
@@ -81,7 +81,7 @@ namespace Omnilatent.InAppPurchase
 
         protected virtual void OnRemoveAdsPurchased(PurchaseResultArgs args, Payout payout)
         {
-            PlayerPrefs.SetInt(IAPProcessor.PREF_NO_ADS, 1);
+            PlayerPrefs.SetInt(InAppPurchaseHelper.PREF_NO_ADS, 1);
             PlayerPrefs.Save();
             SetupNoAds();
             HideBannerOnCheckNoAd();
