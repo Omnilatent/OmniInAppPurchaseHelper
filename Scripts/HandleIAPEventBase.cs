@@ -9,7 +9,7 @@ namespace Omnilatent.InAppPurchase
     public abstract class HandleIAPEventBase : MonoBehaviour
     {
         bool hasAddedNoAdsDelegate;
-        
+
         protected virtual void Awake()
         {
             InAppPurchaseHelper.persistentOnPurchaseCompleteCallback += OnPurchaseComplete;
@@ -19,7 +19,7 @@ namespace Omnilatent.InAppPurchase
             InAppPurchaseHelper.onLogEvent += LogEvent;
             InAppPurchaseHelper.onLogException += LogException;
         }
-        
+
         public void SetupNoAds()
         {
             if (!hasAddedNoAdsDelegate)
@@ -105,7 +105,7 @@ namespace Omnilatent.InAppPurchase
             FirebaseManager.LogEvent(eventname, eventparameter, message);
             #endif
         }
-        
+
         /// <returns>Return true if user has purchased remove ads</returns>
         public virtual bool CheckNoAds()
         {
@@ -118,15 +118,18 @@ namespace Omnilatent.InAppPurchase
                 return false;
             }
         }
-        
+
         public virtual void HideBannerOnCheckNoAd()
         {
-            #if OMNILATENT_ADS_MANAGER
             if (CheckNoAds())
             {
+                #if OMNILATENT_ADS_MANAGER
                 AdsManager.Instance.HideBanner();
+                #endif
+                #if JACAT_ADSMANAGER
+                JacatAdsManager.Instance.HideBanner();
+                #endif
             }
-            #endif
         }
     }
 }
