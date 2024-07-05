@@ -78,6 +78,10 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     public bool ProcessingPurchase { get => processingPurchase; }
     bool debugWillConsumeAllNonConsumable = false; //If set to true before initializing, will consume all non-consumable product to allow re-purchasing.
     bool hasReportedReadyError = false;
+    public const string PREF_NO_ADS = "PURCHASE_ADS";
+    public const string dataFolder = "ProductData";
+
+    [SerializeField] private HandleIAPEventBase _iapEventHandler;
 
     static InAppPurchaseHelper _instance;
 
@@ -91,6 +95,21 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             }
             return _instance;
         }
+    }
+
+    public HandleIAPEventBase IAPEventHandler
+    {
+        get
+        {
+            if (_iapEventHandler == null)
+            {
+                Debug.LogException(new NullReferenceException("IapEventHandler not assigned. Please assign a HandleIAPEventBase object to field _iapEventHandler."));
+                _iapEventHandler = new HandleIAPEventDummy();
+            }
+
+            return _iapEventHandler;
+        }
+        set => _iapEventHandler = value;
     }
 
     private void Awake()
@@ -115,6 +134,12 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     public async void Initialize()
     {
         if (IsInitialized()) return;
+        
+        //add no ads listener as soon as possible. because initiating IAP take some time so splash ads was shown before no ads listener could be added in IAP initiation process
+        // IAPProcessor.SetupNoAds();
+        
+        IAPEventHandler.SetupNoAds();
+        
         // If we haven't set up the Unity Purchasing reference
         if (m_StoreController == null)
         {
@@ -125,9 +150,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             // Begin to configure our connection to Purchasing
             InitializePurchasing();
         }
-
-        //add no ads listener earlier: because initiating IAP take some time so splash ads was shown before no ads listener could be added in IAP initiation process
-        IAPProcessor.SetupNoAds();
     }
 
     async Task InitializeUnityServiceAsync()
@@ -167,7 +189,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         // Add a product to sell / restore by way of its identifier, associating the general identifier
         // with its store-specific identifiers.
 
-        IAPProductData[] products = Resources.LoadAll(IAPProcessor.dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
+        IAPProductData[] products = Resources.LoadAll(dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
 
         foreach (var item in products)
         {
@@ -443,11 +465,11 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             }
             if (hasRemovedAds) break;
         }
-        PlayerPrefs.SetInt(IAPProcessor.PREF_NO_ADS, hasRemovedAds ? 1 : 0);
+        PlayerPrefs.SetInt(PREF_NO_ADS, hasRemovedAds ? 1 : 0);
         RestorePurchaseHelper.Initialize();
-        IAPProcessor.Init();
+        // IAPProcessor.Init();
         if (hasRemovedAds && hideBannerOnCheckRemoveAd)
-            IAPProcessor.HideBannerOnCheckNoAd();
+            IAPEventHandler.HideBannerOnCheckNoAd();
 
         m_GooglePlayStoreExtensions = extensions.GetExtension<IGooglePlayStoreExtensions>();
 #if UNITY_ANDROID
@@ -675,7 +697,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     void ConsumeAllPendingPurchases()
     {
-        IAPProductData[] products = Resources.LoadAll(IAPProcessor.dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
+        IAPProductData[] products = Resources.LoadAll(dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
         foreach (var item in products)
         {
             ConfirmPendingPurchase(item.ProductId);

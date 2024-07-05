@@ -1,10 +1,13 @@
 using System;
+using JacatGames.JacatAdsManager.API;
 using UnityEngine;
 
 namespace Omnilatent.InAppPurchase
 {
     public abstract class HandleIAPEventBase : MonoBehaviour
     {
+        bool hasAddedNoAdsDelegate;
+        
         protected virtual void Awake()
         {
             InAppPurchaseHelper.persistentOnPurchaseCompleteCallback += OnPurchaseComplete;
@@ -13,6 +16,18 @@ namespace Omnilatent.InAppPurchase
             InAppPurchaseHelper.onLogError += LogEvent;
             InAppPurchaseHelper.onLogEvent += LogEvent;
             InAppPurchaseHelper.onLogException += LogException;
+        }
+        
+        public void SetupNoAds()
+        {
+            if (!hasAddedNoAdsDelegate)
+            {
+                #if OMNILATENT_ADS_MANAGER
+                AdsManager.Instance.noAds -= CheckNoAds;
+                AdsManager.Instance.noAds += CheckNoAds;
+                #endif
+                hasAddedNoAdsDelegate = true;
+            }
         }
 
         protected abstract void OnToggleLoading(bool isLoading);
@@ -68,8 +83,8 @@ namespace Omnilatent.InAppPurchase
         {
             PlayerPrefs.SetInt(IAPProcessor.PREF_NO_ADS, 1);
             PlayerPrefs.Save();
-            IAPProcessor.SetupNoAds();
-            IAPProcessor.HideBannerOnCheckNoAd();
+            SetupNoAds();
+            HideBannerOnCheckNoAd();
         }
 
         protected virtual void LogException(Exception e)
@@ -83,6 +98,29 @@ namespace Omnilatent.InAppPurchase
         {
             #if OMNILATENT_FIREBASE_MANAGER
             FirebaseManager.LogEvent(eventname, eventparameter, message);
+            #endif
+        }
+        
+        /// <returns>Return true if user has purchased remove ads</returns>
+        public virtual bool CheckNoAds()
+        {
+            if (PlayerPrefs.GetInt(InAppPurchaseHelper.PREF_NO_ADS, 0) == 1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        
+        public virtual void HideBannerOnCheckNoAd()
+        {
+            #if OMNILATENT_ADS_MANAGER
+            if (CheckNoAds())
+            {
+                AdsManager.Instance.HideBanner();
+            }
             #endif
         }
     }

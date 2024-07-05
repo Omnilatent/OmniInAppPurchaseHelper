@@ -40,7 +40,7 @@ namespace Omnilatent.InAppPurchase
         protected virtual void CheckDisableIfOwned()
         {
             if ((disableIfOwned && productData.productType == UnityEngine.Purchasing.ProductType.NonConsumable && InAppPurchaseHelper.CheckReceipt(productData.ProductId))
-                || (disableIfAdRemoved && IAPProcessor.CheckNoAds()))
+                || (disableIfAdRemoved && InAppPurchaseHelper.Instance.IAPEventHandler.CheckNoAds()))
             {
                 gameObject.SetActive(false);
             }

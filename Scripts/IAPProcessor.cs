@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Purchasing;
@@ -15,11 +16,13 @@ namespace Omnilatent.InAppPurchase
 
         static bool hasAddedNoAdsDelegate;
 
+        [Obsolete("Use HandleIAPEventBase instead")]
         public static void Init()
         {
             SetupNoAds();
         }
 
+        [Obsolete("Use HandleIAPEventBase instead")]
         public static void SetupNoAds()
         {
 #if OMNILATENT_ADS_MANAGER
@@ -57,27 +60,31 @@ namespace Omnilatent.InAppPurchase
             //SS.View.Manager.Add(PopupController.POPUP_SCENE_NAME, new PopupData(PopupType.OK, msg));
         }
 
+        [Obsolete]
         /// <returns>Return true if user has purchased remove ads</returns>
         public static bool CheckNoAds()
         {
-            if (PlayerPrefs.GetInt(PREF_NO_ADS, 0) == 1)
+            return InAppPurchaseHelper.Instance.IAPEventHandler.CheckNoAds();
+            /*if (PlayerPrefs.GetInt(PREF_NO_ADS, 0) == 1)
             {
                 return true;
             }
             else
             {
                 return false;
-            }
+            }*/
         }
 
+        [Obsolete]
         public static void HideBannerOnCheckNoAd()
         {
-#if OMNILATENT_ADS_MANAGER
+/*#if OMNILATENT_ADS_MANAGER
             if (CheckNoAds())
             {
                 AdsManager.Instance.HideBanner();
             }
-#endif
+#endif*/
+            InAppPurchaseHelper.Instance.IAPEventHandler.HideBannerOnCheckNoAd();
         }
     }
 }
