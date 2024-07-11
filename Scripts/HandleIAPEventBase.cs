@@ -20,7 +20,7 @@ namespace Omnilatent.InAppPurchase
             InAppPurchaseHelper.onLogException += LogException;
         }
 
-        public void SetupNoAds()
+        public virtual void SetupNoAds()
         {
             if (!hasAddedNoAdsDelegate)
             {
@@ -28,11 +28,11 @@ namespace Omnilatent.InAppPurchase
                 AdsManager.Instance.noAds -= CheckNoAds;
                 AdsManager.Instance.noAds += CheckNoAds;
                 #endif
-                #if JACAT_ADSMANAGER
-                JacatAdsManager.Instance.SetRemoveAd(CheckNoAds());
-                #endif
                 hasAddedNoAdsDelegate = true;
             }
+            #if JACAT_ADSMANAGER
+            JacatAdsManager.Instance.SetRemoveAd(CheckNoAds());
+            #endif
         }
 
         protected abstract void OnToggleLoading(bool isLoading);
