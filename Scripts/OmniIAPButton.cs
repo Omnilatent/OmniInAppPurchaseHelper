@@ -67,7 +67,11 @@ namespace Omnilatent.InAppPurchase
         
         protected virtual void OnGlobalPurchaseComplete(PurchaseResultArgs purchaseresultargs)
         {
-            if (purchaseresultargs.productID == productData.ProductId)
+            if (disableIfAdRemoved)
+            {
+                CheckDisableIfOwned();
+            }
+            else if (purchaseresultargs.productID == productData.ProductId)
             {
                 CheckDisableIfOwned();
             }
