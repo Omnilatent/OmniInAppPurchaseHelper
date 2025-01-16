@@ -37,6 +37,9 @@ namespace Omnilatent.InAppPurchase
 
         public virtual void OnClick()
         {
+            #if JACAT_ADSMANAGER
+            JacatGames.JacatAdsManager.API.JacatAdsManager.Instance.BlockResumeAdForNextResumes(1);
+            #endif
             InAppPurchaseHelper.Instance.BuyProduct(productData.ProductId, OnPurchaseProduct);
         }
 
