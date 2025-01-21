@@ -18,9 +18,11 @@ namespace Omnilatent.InAppPurchase
         [SerializeField] protected PurchaseEvent onPurchase;
         [SerializeField] protected bool disableIfOwned;
         [SerializeField] protected bool disableIfAdRemoved;
-        
-        [Tooltip("Listen to all purchase event to invoke disable event if it's a non consumable product")] [SerializeField]
+
+        [Tooltip("Listen to all purchase event to invoke disable event if it's a non consumable product")]
+        [SerializeField]
         protected bool _listenToGlobalPurchaseEvent;
+
         [SerializeField] UnityEvent _onDisable;
         [SerializeField] protected bool _deactivateSelfOnDisable = true;
 
@@ -37,9 +39,10 @@ namespace Omnilatent.InAppPurchase
 
         public virtual void OnClick()
         {
-            #if JACAT_ADSMANAGER
-            JacatGames.JacatAdsManager.API.JacatAdsManager.Instance.BlockResumeAdForNextResumes(1);
-            #endif
+#if JACAT_ADSMANAGER
+            // JacatGames.JacatAdsManager.API.JacatAdsManager.Instance.BlockResumeAdForNextResumes(1);
+            JacatGames.JacatAdsManager.API.JacatAdsManager.Instance.SetShowAdOnResume(false);
+#endif
             InAppPurchaseHelper.Instance.BuyProduct(productData.ProductId, OnPurchaseProduct);
         }
 
@@ -47,27 +50,32 @@ namespace Omnilatent.InAppPurchase
         {
             onPurchase?.Invoke(purchaseResultArgs);
             CheckDisableIfOwned();
+
+#if JACAT_ADSMANAGER
+            JacatGames.JacatAdsManager.API.JacatAdsManager.Instance.SetShowAdOnResume(true);
+#endif
         }
 
         protected virtual void CheckDisableIfOwned()
         {
-            if ((disableIfOwned && productData.productType == UnityEngine.Purchasing.ProductType.NonConsumable && InAppPurchaseHelper.CheckReceipt(productData.ProductId))
+            if ((disableIfOwned && productData.productType == UnityEngine.Purchasing.ProductType.NonConsumable &&
+                 InAppPurchaseHelper.CheckReceipt(productData.ProductId))
                 || (disableIfAdRemoved && InAppPurchaseHelper.Instance.IAPEventHandler.CheckNoAds()))
             {
                 Disable();
             }
         }
-        
+
         public void Disable()
         {
             if (_deactivateSelfOnDisable)
             {
                 gameObject.SetActive(false);
             }
-            
+
             _onDisable.Invoke();
         }
-        
+
         protected virtual void OnGlobalPurchaseComplete(PurchaseResultArgs purchaseresultargs)
         {
             if (disableIfAdRemoved)
@@ -79,7 +87,7 @@ namespace Omnilatent.InAppPurchase
                 CheckDisableIfOwned();
             }
         }
-        
+
         protected virtual void OnDestroy()
         {
             InAppPurchaseHelper.persistentOnPurchaseCompleteCallback -= OnGlobalPurchaseComplete;
