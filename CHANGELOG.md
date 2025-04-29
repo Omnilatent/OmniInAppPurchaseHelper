@@ -1,3 +1,15 @@
+## 2.5.3
+New Features
+- Implemented Jacat Ads Manager.
+- Added debug code for consuming purchases.
+- Created a custom drawer for ProductDataPayout.
+
+Changes
+- Updated block to show ads on app resume.
+- IAP Button: Block resume ad once when making a purchase.
+- IAP Button: Always check and disable if disableIfAdRemoved is enabled.
+- Made SetupNoAds method virtual for customization.
+
 ## 2.5.2
 Changes:
 - Include HandleIAPEvent class in library namespace.
