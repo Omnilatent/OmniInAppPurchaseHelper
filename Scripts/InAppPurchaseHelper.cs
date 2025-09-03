@@ -209,21 +209,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         UnityPurchasing.Initialize(this, builder);
     }
 
-    /// <summary>
-    /// Check if Store controller & Store extension provider has been initialized.
-    /// </summary>
-    public bool IsInitialized()
-    {
-        // Only say we are initialized if both the Purchasing references are set.
-        bool ready = m_StoreController != null && m_StoreExtensionProvider != null;
-        if (!ready && !hasReportedReadyError)
-        {
-            Debug.Log("IAP Helper not initialized");
-            hasReportedReadyError = true;
-        }
-        return ready;
-    }
-
     //Example code
     void BuyProductID(string productId)
     {
@@ -444,6 +429,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     // --- IStoreListener
     //
 
+    [Obsolete]
     public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
     {
         // Purchasing has succeeded initializing. Collect our Purchasing references.
@@ -487,6 +473,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         onInitializeComplete?.Invoke(true);
     }
 
+    [Obsolete]
     public void OnInitializeFailed(InitializationFailureReason error)
     {
         // Purchasing set-up has not succeeded. Check error for reason. Consider sharing this reason with the user.
@@ -495,6 +482,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         onInitializeComplete?.Invoke(false);
     }
 
+    [Obsolete]
     public void OnInitializeFailed(InitializationFailureReason error, string message)
     {
         // Purchasing set-up has not succeeded. Check error for reason. Consider sharing this reason with the user.
@@ -503,6 +491,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         onInitializeComplete?.Invoke(false);
     }
 
+    [Obsolete]
     public PurchaseProcessingResult ProcessPurchase(PurchaseEventArgs args)
     {
         onToggleLoading?.Invoke(false);
@@ -574,6 +563,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         return String.Equals(args.purchasedProduct.definition.id, productId, StringComparison.Ordinal);
     }
 
+    [Obsolete]
     /// <summary>
     /// IStoreListener function.
     /// </summary>
