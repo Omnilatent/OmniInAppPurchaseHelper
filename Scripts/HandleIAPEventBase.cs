@@ -41,6 +41,8 @@ namespace Omnilatent.InAppPurchase
 
         protected abstract void ToggleShowAdOnResume(bool value);
 
+        protected abstract void OnPurchaseRestored(bool success, string errorMessage);
+
         protected virtual void OnPurchaseStart(string productId)
         {
             ToggleShowAdOnResume(false);

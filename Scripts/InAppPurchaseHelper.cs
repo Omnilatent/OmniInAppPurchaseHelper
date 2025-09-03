@@ -72,6 +72,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     public static LogEventDelegate onLogEvent;
     public static Action<System.Exception> onLogException;
     public static LogEventDelegate onLogError;
+    public static Action<bool, string> OnPurchaseRestored;
 
     Dictionary<string, SubscriptionManager> subscriptionManagers = new Dictionary<string, SubscriptionManager>();
     bool processingPurchase = false;
@@ -195,7 +196,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         {
             ProductType productType = item.productType;
             if (debugWillConsumeAllNonConsumable && productType == ProductType.NonConsumable) { productType = ProductType.Consumable; }
-            builder.AddProduct(item.ProductId, productType, new IDs
+            builder.AddProduct(item.ProductId, productType, new StoreSpecificIds
             {
                 { item.ProductId, GooglePlay.Name },
                 { item.AppleAppStoreProductId, AppleAppStore.Name }
@@ -676,22 +677,9 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         return info;
     }
 
-    void OnRestore(bool success)
+    void OnRestore(bool success, string errorMessage)
     {
-        var restoreMessage = "";
-        if (success)
-        {
-            // This does not mean anything was restored,
-            // merely that the restoration process succeeded.
-            restoreMessage = "Restore Successful";
-        }
-        else
-        {
-            // Restoration failed.
-            restoreMessage = "Restore Failed";
-        }
-
-        Debug.Log(restoreMessage);
+        OnPurchaseRestored?.Invoke(success, errorMessage);
     }
 
     void ValidateProductPayoutSubtype(IAPProductData productData)

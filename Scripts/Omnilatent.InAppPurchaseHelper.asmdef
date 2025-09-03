@@ -14,7 +14,12 @@
         "LitJSON",
         "Unity.Services.Core",
         "Unity.Services.Core.Environments",
-        "JacatGames.JacatAdsManager"
+        "JacatGames.JacatAdsManager",
+        "Unity.Purchasing.Stores",
+        "Unity.Purchasing",
+        "Unity.Purchasing.Security",
+        "Unity.Purchasing.SecurityCore",
+        "Unity.Purchasing.SecurityStub"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
