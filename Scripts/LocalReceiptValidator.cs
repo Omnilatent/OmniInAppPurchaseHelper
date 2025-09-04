@@ -7,24 +7,46 @@ using UnityEngine.UI;
 
 public partial class InAppPurchaseHelper : MonoBehaviour
 {
-    CrossPlatformValidator m_Validator = null;
+    protected CrossPlatformValidator m_Validator = null;
     bool m_UseAppleStoreKitTestCertificate;
-
+    
     void InitializeValidator()
     {
-        if (IsCurrentStoreSupportedByValidator())
+        //5.0.0 change: Only validate on Google store. App store has its own validation now
+        if (IsGooglePlayStoreSelected())
         {
-#if OMNILATENT_IAP_HELPER
-            var appleTangleData = m_UseAppleStoreKitTestCertificate ? AppleStoreKitTestTangle.Data() : AppleTangle.Data();
-            m_Validator = new CrossPlatformValidator(GooglePlayTangle.Data(), appleTangleData, Application.identifier);
-#endif
+            #if !UNITY_EDITOR && OMNILATENT_IAP_HELPER
+            m_Validator = new CrossPlatformValidator(GooglePlayTangle.Data(), Application.identifier);
+            #endif
         }
         else
         {
-            var warningMsg = $"The cross-platform validator is not implemented for the currently selected store: {StandardPurchasingModule.Instance().appStore}. \n" +
-                                "Build the project for Android, iOS, macOS, or tvOS and use the Google Play Store or Apple App Store. See README for more information.";
-            Debug.LogWarning(warningMsg);
+            Debug.LogWarning($"The cross-platform validator is not implemented for the currently selected store: {StandardPurchasingModule.Instance().appStore}.");
         }
+    }
+    
+    public bool IsPurchaseValid(Order order)
+    {
+        //If the validator doesn't support the current store, we assume the purchase is valid
+        if (IsGooglePlayStoreSelected())
+        {
+            try
+            {
+                var result = m_Validator.Validate(order.Info.Receipt);
+
+                //The validator returns parsed receipts.
+                LogReceipts(result);
+            }
+
+            //If the purchase is deemed invalid, the validator throws an IAPSecurityException.
+            catch (IAPSecurityException reason)
+            {
+                Debug.Log($"Invalid receipt: {reason}");
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public static bool CheckReceipt(string productId)
@@ -59,7 +81,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     static bool IsCurrentStoreSupportedByValidator()
     {
         //The CrossPlatform validator only supports the GooglePlayStore and Apple's App Stores.
-        return IsGooglePlayStoreSelected() || IsAppleAppStoreSelected();
+        return IsGooglePlayStoreSelected();
     }
 
     static bool IsGooglePlayStoreSelected()

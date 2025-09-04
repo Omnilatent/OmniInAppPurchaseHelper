@@ -1,7 +1,9 @@
 {
     "name": "Omnilatent.InAppPurchase.Editor",
+    "rootNamespace": "",
     "references": [
-        "GUID:d3637dc643d9f1b4c976cbe7c86e6b81"
+        "GUID:d3637dc643d9f1b4c976cbe7c86e6b81",
+        "GUID:e25a61468ff30f44fad56a6b40062363"
     ],
     "includePlatforms": [
         "Editor"

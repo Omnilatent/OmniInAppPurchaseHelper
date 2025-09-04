@@ -7,7 +7,9 @@ namespace Omnilatent.InAppPurchase.EditorNS
 {
     public static class MenuItemEditor
     {
-        [MenuItem("Tools/Omnilatent/IAP Helper/Upgrade ProductData v1 to v2")]
+        public const string MenuItemPath = "Tools/Omnilatent/IAP Helper/";
+        
+        [MenuItem(MenuItemPath + "Upgrade ProductData v1 to v2")]
         public static void UpgradeProductDataTypeSubtype()
         {
             var productDatas = Resources.LoadAll<IAPProductData>(InAppPurchaseHelper.dataFolder);
