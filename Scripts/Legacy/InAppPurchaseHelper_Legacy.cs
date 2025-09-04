@@ -69,5 +69,58 @@ namespace Omnilatent.InAppPurchase
             }
             return ready;
         }
+        
+        IEnumerator WaitForInitialize(string productId, PurchaseCompleteDelegate purchaseCompleteDelegate)
+    {
+        if (!IsInitialized() && Application.internetReachability != NetworkReachability.NotReachable)
+        {
+            onToggleLoading?.Invoke(true);
+            InitializePurchasing();
+
+            //Wait timeout
+            float timeout = 5f;
+            var checkInterval = new WaitForSecondsRealtime(0.1f);
+            while (timeout > 0f)
+            {
+                if (IsInitialized())
+                {
+                    timeout = 0f;
+                    break;
+                }
+                timeout -= 0.1f;
+                yield return checkInterval;
+            }
+
+            onToggleLoading?.Invoke(false);
+        }
+
+        // Buy the product using its general identifier. Expect a response either 
+        // through ProcessPurchase or OnPurchaseFailed asynchronously.
+        if (IsInitialized())
+        {
+            Product product = m_StoreController.products.WithID(productId);
+
+            onNextPurchaseComplete = purchaseCompleteDelegate;
+            if (product != null && product.availableToPurchase)
+            {
+                Debug.Log(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
+                onToggleLoading?.Invoke(true);
+                processingPurchase = true;
+                m_StoreController.InitiatePurchase(product);
+            }
+            else
+            {
+                string msg = $"Purchase {productId} failed. Product not found or not available.";
+                PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.ProductUnavailable);
+                OnPurchaseFailed(purchaseResultArgs);
+            }
+        }
+        else
+        {
+            string msg = $"Purchase {productId} failed. IAP not initialized. Please check internet connection or try again later.";
+            PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.PurchasingUnavailable);
+            OnPurchaseFailed(purchaseResultArgs);
+        }
+    }
     }
 }*/

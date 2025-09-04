@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Omnilatent.InAppPurchase;
@@ -9,10 +10,11 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 {
     #region Initialization
 
-    StoreController _storeController;
-    UnityEngine.Purchasing.CatalogProvider m_DefaultCatalogProvider = new UnityEngine.Purchasing.CatalogProvider();
-
-    async void InitializeIAP()
+    protected StoreController _storeController;
+    protected UnityEngine.Purchasing.CatalogProvider m_DefaultCatalogProvider = new UnityEngine.Purchasing.CatalogProvider();
+    protected IPurchaseService m_PurchasingService;
+    
+    public async void Initialize()
     {
         // If we have already connected to Purchasing ...
         if (IsInitialized())
@@ -20,8 +22,15 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             // ... we are done here.
             return;
         }
+
+        IAPEventHandler.SetupNoAds();
+        if (initializeUnityService)
+        {
+            await InitializeUnityServiceAsync();
+        }
         
         _storeController = UnityIAPServices.StoreController();
+        m_PurchasingService = UnityIAPServices.DefaultPurchase();
 
         _storeController.OnPurchasePending += OnPurchasePending;
         _storeController.OnStoreDisconnected += OnStoreDisconnected;
@@ -63,6 +72,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         {
             Debug.Log("removeAdsProducts doesn't have any products. If you have remove ads product, add it to the list");
         }
+
         foreach (var item in removeAdsProducts)
         {
             foreach (var payout in item.payouts)
@@ -73,21 +83,23 @@ public partial class InAppPurchaseHelper : MonoBehaviour
                     break;
                 }
             }
+
             if (hasRemovedAds) break;
         }
+
         PlayerPrefs.SetInt(PREF_NO_ADS, hasRemovedAds ? 1 : 0);
         RestorePurchaseHelper.Initialize();
         // IAPProcessor.Init();
         if (hasRemovedAds && hideBannerOnCheckRemoveAd)
             IAPEventHandler.HideBannerOnCheckNoAd();
-        
+
         #if !UNITY_IOS //ios require button to restore
         _storeController.RestoreTransactions(OnPurchaseRestored);
         #endif
         if (debugWillConsumeAllNonConsumable) ConsumeAllPendingPurchases();
         onInitializeComplete?.Invoke(true);
     }
-    
+
     void FetchProducts()
     {
         IAPProductData[] products = Resources.LoadAll(dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
@@ -120,7 +132,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         UnityIAPServices.DefaultProduct().OnProductsFetched += OnInitialProductsFetched;
         UnityIAPServices.DefaultProduct().OnProductsFetchFailed += OnInitialProductsFetchFailed;
     }
-    
+
     /// <summary>
     /// Check if Store controller & Store extension provider has been initialized.
     /// </summary>
@@ -133,6 +145,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             Debug.Log("IAP Helper not initialized");
             hasReportedReadyError = true;
         }
+
         return ready;
     }
 
@@ -150,27 +163,83 @@ public partial class InAppPurchaseHelper : MonoBehaviour
                 failedProducts += ", ";
             }
         }
-        
+
         Debug.LogError($"InitialProductsFetchFailed. Reason: {fetchFailed.FailureReason}. Failed to fetch: [{failedProducts}]");
     }
 
     #endregion
 
+    IEnumerator WaitForInitialize(string productId, PurchaseCompleteDelegate purchaseCompleteDelegate)
+    {
+        if (!IsInitialized() && Application.internetReachability != NetworkReachability.NotReachable)
+        {
+            onToggleLoading?.Invoke(true);
+            InitializePurchasing();
+
+            //Wait timeout
+            float timeout = 5f;
+            var checkInterval = new WaitForSecondsRealtime(0.1f);
+            while (timeout > 0f)
+            {
+                if (IsInitialized())
+                {
+                    timeout = 0f;
+                    break;
+                }
+
+                timeout -= 0.1f;
+                yield return checkInterval;
+            }
+
+            onToggleLoading?.Invoke(false);
+        }
+
+        // Buy the product using its general identifier. Expect a response either 
+        // through ProcessPurchase or OnPurchaseFailed asynchronously.
+        if (IsInitialized())
+        {
+            Product product = GetProduct(productId);
+
+            onNextPurchaseComplete = purchaseCompleteDelegate;
+            if (product != null && product.availableToPurchase)
+            {
+                Debug.Log(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
+                onToggleLoading?.Invoke(true);
+                processingPurchase = true;
+                _storeController.PurchaseProduct(product);
+            }
+            else
+            {
+                string msg = $"Purchase {productId} failed. Product not found or not available.";
+                PurchaseResultArgs purchaseResultArgs =
+                    new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.ProductUnavailable);
+                OnPurchaseFailed(purchaseResultArgs);
+            }
+        }
+        else
+        {
+            string msg = $"Purchase {productId} failed. IAP not initialized. Please check internet connection or try again later.";
+            PurchaseResultArgs purchaseResultArgs =
+                new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.PurchasingUnavailable);
+            OnPurchaseFailed(purchaseResultArgs);
+        }
+    }
+
     private void OnPurchasePending(PendingOrder order)
     {
         onToggleLoading?.Invoke(false);
         processingPurchase = false;
-        
+
         var firstProduct = GetFirstProductInOrder(order);
         bool isValidPurchase = CheckProductData(firstProduct.definition.id);
-        
+
         PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(firstProduct.definition.id, true);
         InvokeCallbackClearNextPurchaseCallback(purchaseResultArgs);
 
         Debug.Log($"Processing Purchase: {firstProduct.definition.id}");
         _storeController.ConfirmPurchase(order);
     }
-    
+
     public static bool CheckProductData(string productId)
     {
         IAPProductData productData = GetProductData(productId);
@@ -181,6 +250,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             Debug.LogError($"Product data {productId} does not exist in Resources/ProductData folder.");
             isValidPurchase = false;
         }
+
         return isValidPurchase;
     }
 
@@ -194,9 +264,57 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     {
         // Process purchases, e.g. check for entitlements from completed orders  
     }
-    
+
     static Product GetFirstProductInOrder(Order order)
     {
         return order.CartOrdered.Items().First()?.Product;
+    }
+    
+    public Product GetProduct(string productId)
+    {
+        Product product = null;
+        if (IsInitialized())
+        {
+            product = _storeController.GetProductById(productId);
+            if (product != null && product.availableToPurchase)
+            {
+                //Debug.Log(string.Format("Product: '{0}'", product.definition.id));
+            }
+            else
+            {
+                Debug.LogError($"BuyProductID:{productId} FAIL. Not purchasing product, not found or not available for purchase. Check if ProductData with corresponding ID is in Resources/ProductData");
+            }
+        }
+        return product;
+    }
+    
+    public static void ConfirmPendingPurchase(string productID)
+    {
+        var product = Instance.GetProduct(productID);
+        var pendingOrder = GetPendingOrderFromProduct(product);
+        if (pendingOrder != null)
+        {
+            Instance._storeController.ConfirmPurchase(pendingOrder);
+        }
+    }
+    
+    static PendingOrder GetPendingOrderFromProduct(Product product)
+    {
+        foreach (var order in Instance.m_PurchasingService.GetPurchases())
+        {
+            if (order is PendingOrder pendingOrder)
+            {
+                var cartItem = pendingOrder.CartOrdered.Items().FirstOrDefault();
+                if (cartItem != null && cartItem.Product.definition.storeSpecificId == product.definition.storeSpecificId)
+                {
+                    return pendingOrder; // Return the original instance
+                }
+            }
+        }
+        Debug.LogWarning($"No pending order found for product {product.definition.id}.");
+        return null;
+        /*var cartItemNew = new CartItem(product);
+        var cartNew = new Cart(cartItemNew);
+        return new PendingOrder(cartNew, new OrderInfo(string.Empty, string.Empty, string.Empty));*/
     }
 }

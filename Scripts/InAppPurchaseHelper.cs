@@ -42,6 +42,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     [SerializeField] bool initializeAutomatically = true;
     [SerializeField] bool initializeUnityService = true;
 
+    [Obsolete("Use _storeController instead", true)]
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
     private static IExtensionProvider m_StoreExtensionProvider; // The store-specific Purchasing subsystems.
     IGooglePlayStoreExtensions m_GooglePlayStoreExtensions;
@@ -132,7 +133,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         Initialize();
     }
 
-    public async void Initialize()
+    /*public async void Initialize()
     {
         if (IsInitialized()) return;
         
@@ -151,7 +152,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             // Begin to configure our connection to Purchasing
             InitializePurchasing();
         }
-    }
+    }*/
 
     async Task InitializeUnityServiceAsync()
     {
@@ -175,6 +176,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         }
     }
 
+    [Obsolete]
     public void InitializePurchasing()
     {
         // If we have already connected to Purchasing ...
@@ -209,40 +211,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         UnityPurchasing.Initialize(this, builder);
     }
 
-    //Example code
-    void BuyProductID(string productId)
-    {
-        // If Purchasing has been initialized ...
-        if (IsInitialized())
-        {
-            // ... look up the Product reference with the general product identifier and the Purchasing 
-            // system's products collection.
-            Product product = m_StoreController.products.WithID(productId);
-
-            // If the look up found a product for this device's store and that product is ready to be sold ... 
-            if (product != null && product.availableToPurchase)
-            {
-                Debug.Log(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
-                // ... buy the product. Expect a response either through ProcessPurchase or OnPurchaseFailed 
-                // asynchronously.
-                m_StoreController.InitiatePurchase(product);
-            }
-            // Otherwise ...
-            else
-            {
-                // ... report the product look-up failure situation  
-                Debug.Log("BuyProductID: FAIL. Not purchasing product, either is not found or is not available for purchase");
-            }
-        }
-        // Otherwise ...
-        else
-        {
-            // ... report the fact Purchasing has not succeeded initializing yet. Consider waiting longer or 
-            // retrying initiailization.
-            Debug.Log("BuyProductID FAIL. Not initialized.");
-        }
-    }
-
     /// <summary>
     /// Inititate purchase process
     /// </summary>
@@ -254,7 +222,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         StartCoroutine(WaitForInitialize(productId, purchaseCompleteDelegate));
     }
 
-    IEnumerator WaitForInitialize(string productId, PurchaseCompleteDelegate purchaseCompleteDelegate)
+    /*IEnumerator WaitForInitialize(string productId, PurchaseCompleteDelegate purchaseCompleteDelegate)
     {
         if (!IsInitialized() && Application.internetReachability != NetworkReachability.NotReachable)
         {
@@ -305,7 +273,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(productId, false, msg, PurchaseFailureReason.PurchasingUnavailable);
             OnPurchaseFailed(purchaseResultArgs);
         }
-    }
+    }*/
 
     IEnumerator SelfTimeoutPurchase(string productId)
     {
@@ -333,7 +301,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         }
     }
 
-    public Product GetProduct(string productId)
+    /*public Product GetProduct(string productId)
     {
         Product product = null;
         if (IsInitialized())
@@ -349,7 +317,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             }
         }
         return product;
-    }
+    }*/
     
     public static IAPProductData GetProductData(string id)
     {
@@ -628,11 +596,11 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         }
     }
 
-    public static void ConfirmPendingPurchase(string productID)
+    /*public static void ConfirmPendingPurchase(string productID)
     {
         var product = Instance.GetProduct(productID);
         m_StoreController.ConfirmPendingPurchase(product);
-    }
+    }*/
 
     public static GoogleProductMetadata GetGoogleProductMetadata(string productID)
     {
