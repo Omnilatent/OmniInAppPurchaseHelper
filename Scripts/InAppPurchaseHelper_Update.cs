@@ -17,7 +17,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     public async void Initialize()
     {
         // If we have already connected to Purchasing ...
-        if (IsInitialized())
+        if (IsInitialized(false))
         {
             // ... we are done here.
             return;
@@ -136,11 +136,11 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     /// <summary>
     /// Check if Store controller & Store extension provider has been initialized.
     /// </summary>
-    public bool IsInitialized()
+    public bool IsInitialized(bool logIfNotReady = true)
     {
         // Only say we are initialized if both the Purchasing references are set.
         bool ready = _storeController != null && m_StoreExtensionProvider != null;
-        if (!ready && !hasReportedReadyError)
+        if (!ready && !hasReportedReadyError && logIfNotReady)
         {
             Debug.Log("IAP Helper not initialized");
             hasReportedReadyError = true;

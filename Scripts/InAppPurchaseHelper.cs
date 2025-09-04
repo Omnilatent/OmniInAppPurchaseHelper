@@ -180,7 +180,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     public void InitializePurchasing()
     {
         // If we have already connected to Purchasing ...
-        if (IsInitialized())
+        if (IsInitialized(false))
         {
             // ... we are done here.
             return;
