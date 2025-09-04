@@ -18,6 +18,7 @@ namespace Omnilatent.InAppPurchase
             InAppPurchaseHelper.onLogError += LogEvent;
             InAppPurchaseHelper.onLogEvent += LogEvent;
             InAppPurchaseHelper.onLogException += LogException;
+            InAppPurchaseHelper.OnPurchaseRestored += OnPurchaseRestored;
         }
 
         public virtual void SetupNoAds()

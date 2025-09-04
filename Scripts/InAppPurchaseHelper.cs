@@ -29,7 +29,8 @@ namespace Omnilatent.InAppPurchase
     }
 }
 
-public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
+public partial class InAppPurchaseHelper : MonoBehaviour 
+    //, IStoreListener //deprecate since Unity IAP 5.0 
 {
     [SerializeField] IAPProductData[] removeAdsProducts; //Products to check receipt on initialized 
     public IAPProductData[] RemoveAdsProducts { get => removeAdsProducts; }
@@ -44,6 +45,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     [Obsolete("Use _storeController instead", true)]
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
+    [Obsolete("", true)]
     private static IExtensionProvider m_StoreExtensionProvider; // The store-specific Purchasing subsystems.
     IGooglePlayStoreExtensions m_GooglePlayStoreExtensions;
 
@@ -174,41 +176,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             // An error occurred during services initialization.
             LogError(exception.Message);
         }
-    }
-
-    [Obsolete]
-    public void InitializePurchasing()
-    {
-        // If we have already connected to Purchasing ...
-        if (IsInitialized(false))
-        {
-            // ... we are done here.
-            return;
-        }
-
-        // Create a builder, first passing in a suite of Unity provided stores.
-        var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
-
-        // Add a product to sell / restore by way of its identifier, associating the general identifier
-        // with its store-specific identifiers.
-
-        IAPProductData[] products = Resources.LoadAll(dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
-
-        foreach (var item in products)
-        {
-            ProductType productType = item.productType;
-            if (debugWillConsumeAllNonConsumable && productType == ProductType.NonConsumable) { productType = ProductType.Consumable; }
-            builder.AddProduct(item.ProductId, productType, new StoreSpecificIds
-            {
-                { item.ProductId, GooglePlay.Name },
-                { item.AppleAppStoreProductId, AppleAppStore.Name }
-            });
-            ValidateProductPayoutSubtype(item);
-        }
-
-        // Kick off the remainder of the set-up with an asynchrounous call, passing the configuration 
-        // and this class' instance. Expect a response either in OnInitialized or OnInitializeFailed.
-        UnityPurchasing.Initialize(this, builder);
     }
 
     /// <summary>
@@ -358,7 +325,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
     // Restore purchases previously made by this customer. Some platforms automatically restore purchases, like Google. 
     // Apple currently requires explicit purchase restoration for IAP, conditionally displaying a password prompt.
-    public void RestorePurchases()
+    /*public void RestorePurchases()
     {
         // If Purchasing has not yet been set up ...
         if (!IsInitialized())
@@ -390,7 +357,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             // We are not running on an Apple device. No work is necessary to restore purchases.
             Debug.Log("RestorePurchases FAIL. Not supported on this platform. Current = " + Application.platform);
         }
-    }
+    }*/
 
 
     //  
@@ -435,7 +402,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
         m_GooglePlayStoreExtensions = extensions.GetExtension<IGooglePlayStoreExtensions>();
 #if UNITY_ANDROID
-        m_GooglePlayStoreExtensions.RestoreTransactions(OnRestore);
+        m_GooglePlayStoreExtensions.RestoreTransactions(OnPurchaseRestored);
 #endif
         if (debugWillConsumeAllNonConsumable) ConsumeAllPendingPurchases();
         onInitializeComplete?.Invoke(true);
@@ -633,11 +600,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         info = subscriptionManager.getSubscriptionInfo();
 #endif
         return info;
-    }
-
-    void OnRestore(bool success, string errorMessage)
-    {
-        OnPurchaseRestored?.Invoke(success, errorMessage);
     }
 
     void ValidateProductPayoutSubtype(IAPProductData productData)

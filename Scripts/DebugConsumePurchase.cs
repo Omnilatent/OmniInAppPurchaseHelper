@@ -21,5 +21,11 @@ namespace Omnilatent.InAppPurchase
                 PlayerPrefs.Save();
             }
         }
+
+        public static void SetConsumeAllIAPProducts(bool value)
+        {
+            PlayerPrefs.SetInt(ppConsumeAllProductsNextOpen, value ? 1 : 0);
+            PlayerPrefs.Save();
+        }
     }
 }

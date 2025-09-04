@@ -13,6 +13,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     protected StoreController _storeController;
     protected UnityEngine.Purchasing.CatalogProvider m_DefaultCatalogProvider = new UnityEngine.Purchasing.CatalogProvider();
     protected IPurchaseService m_PurchasingService;
+    protected bool _initialized;
     
     public async void Initialize()
     {
@@ -65,7 +66,34 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         // Purchasing has succeeded initializing. Collect our Purchasing references.
         Debug.Log("OnInitialized: PASS");
         InitializeValidator();
+    }
 
+    void FetchProducts()
+    {
+        IAPProductData[] products = Resources.LoadAll(dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
+
+        var initialProductsToFetch = new List<ProductDefinition>();
+        var storeSpecificIdsByProductId = new Dictionary<string, StoreSpecificIds>();
+        foreach (var item in products)
+        {
+            ProductType productType = item.productType;
+            if (debugWillConsumeAllNonConsumable && productType == ProductType.NonConsumable) { productType = ProductType.Consumable; }
+
+            initialProductsToFetch.Add(new ProductDefinition(id: item.ProductId, type: productType));
+            var storeSpecificIds = new StoreSpecificIds
+            {
+                { item.ProductId, UnityEngine.Purchasing.GooglePlay.Name },
+                { item.AppleAppStoreProductId, UnityEngine.Purchasing.AppleAppStore.Name },
+            };
+            storeSpecificIdsByProductId.Add(item.ProductId, storeSpecificIds);
+            ValidateProductPayoutSubtype(item);
+        }
+
+        //Finally we add everything to the Catalog Provider
+        m_DefaultCatalogProvider.AddProducts(initialProductsToFetch, storeSpecificIdsByProductId);
+        ConfigureProductServiceCallbacks();
+        m_DefaultCatalogProvider.FetchProducts(UnityIAPServices.DefaultProduct().FetchProductsWithNoRetries);
+        
         //check if user has purchased any remove ads product
         bool hasRemovedAds = false;
         if (removeAdsProducts.Length == 0)
@@ -97,34 +125,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         _storeController.RestoreTransactions(OnPurchaseRestored);
         #endif
         if (debugWillConsumeAllNonConsumable) ConsumeAllPendingPurchases();
+        _initialized = true;
         onInitializeComplete?.Invoke(true);
-    }
-
-    void FetchProducts()
-    {
-        IAPProductData[] products = Resources.LoadAll(dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
-
-        var initialProductsToFetch = new List<ProductDefinition>();
-        var storeSpecificIdsByProductId = new Dictionary<string, StoreSpecificIds>();
-        foreach (var item in products)
-        {
-            ProductType productType = item.productType;
-            if (debugWillConsumeAllNonConsumable && productType == ProductType.NonConsumable) { productType = ProductType.Consumable; }
-
-            initialProductsToFetch.Add(new ProductDefinition(id: item.ProductId, type: productType));
-            var storeSpecificIds = new StoreSpecificIds
-            {
-                { item.ProductId, UnityEngine.Purchasing.GooglePlay.Name },
-                { item.AppleAppStoreProductId, UnityEngine.Purchasing.AppleAppStore.Name },
-            };
-            storeSpecificIdsByProductId.Add(item.ProductId, storeSpecificIds);
-            ValidateProductPayoutSubtype(item);
-        }
-
-        //Finally we add everything to the Catalog Provider
-        m_DefaultCatalogProvider.AddProducts(initialProductsToFetch, storeSpecificIdsByProductId);
-        ConfigureProductServiceCallbacks();
-        m_DefaultCatalogProvider.FetchProducts(UnityIAPServices.DefaultProduct().FetchProductsWithNoRetries);
     }
 
     void ConfigureProductServiceCallbacks()
@@ -139,7 +141,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     public bool IsInitialized(bool logIfNotReady = true)
     {
         // Only say we are initialized if both the Purchasing references are set.
-        bool ready = _storeController != null && m_StoreExtensionProvider != null;
+        bool ready = _storeController != null && _initialized;
         if (!ready && !hasReportedReadyError && logIfNotReady)
         {
             Debug.Log("IAP Helper not initialized");
@@ -174,7 +176,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         if (!IsInitialized() && Application.internetReachability != NetworkReachability.NotReachable)
         {
             onToggleLoading?.Invoke(true);
-            InitializePurchasing();
+            Initialize();
 
             //Wait timeout
             float timeout = 5f;
@@ -316,5 +318,41 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         /*var cartItemNew = new CartItem(product);
         var cartNew = new Cart(cartItemNew);
         return new PendingOrder(cartNew, new OrderInfo(string.Empty, string.Empty, string.Empty));*/
+    }
+    
+    public void RestorePurchases()
+    {
+        // If Purchasing has not yet been set up ...
+        if (!IsInitialized())
+        {
+            // ... report the situation and stop restoring. Consider either waiting longer, or retrying initialization.
+            Debug.Log("RestorePurchases FAIL. Not initialized.");
+            return;
+        }
+
+        // If we are running on an Apple device ... 
+        bool isIOS = false;
+        #if UNITY_IOS
+        isIOS = true;
+        #endif
+        if (isIOS)
+        {
+            // ... begin restoring purchases
+            Debug.Log("RestorePurchases started ...");
+            onToggleLoading?.Invoke(true);
+            _storeController.RestoreTransactions(OnRestorePurchase);
+        }
+        // Otherwise ...
+        else
+        {
+            // We are not running on an Apple device. No work is necessary to restore purchases.
+            Debug.Log("RestorePurchases FAIL. Not supported on this platform. Current = " + Application.platform);
+        }
+        
+        void OnRestorePurchase(bool success, string errorMessage)
+        {
+            onToggleLoading?.Invoke(false);
+            OnPurchaseRestored?.Invoke(success, errorMessage);
+        }
     }
 }
