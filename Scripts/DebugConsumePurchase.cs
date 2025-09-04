@@ -22,6 +22,10 @@ namespace Omnilatent.InAppPurchase
             }
         }
 
+        /// <summary>
+        /// Set IAP helper to consume all non-consumable on next app open
+        /// </summary>
+        /// <param name="value"></param>
         public static void SetConsumeAllIAPProducts(bool value)
         {
             PlayerPrefs.SetInt(ppConsumeAllProductsNextOpen, value ? 1 : 0);

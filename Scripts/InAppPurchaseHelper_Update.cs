@@ -37,6 +37,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         _storeController.OnStoreDisconnected += OnStoreDisconnected;
         // _storeController.OnProductsFetchFailed += OnProductsFetchFailed;
         _storeController.OnPurchasesFetchFailed += OnPurchaseFetchFailed;
+        _storeController.OnPurchaseFailed += OnPurchaseFailed;
 
         await _storeController.Connect();
         OnStoreConnected();
@@ -44,6 +45,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         _storeController.OnProductsFetched += OnProductsFetched;
         _storeController.OnPurchasesFetched += OnPurchasesFetched;
 
+        DebugConsumePurchase.CheckConsumeAllIAPProducts(this);
         FetchProducts();
     }
 
@@ -241,6 +243,32 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         Debug.Log($"Processing Purchase: {firstProduct.definition.id}");
         _storeController.ConfirmPurchase(order);
     }
+    
+    public void OnPurchaseFailed(FailedOrder failedOrder)
+    {
+        // A product purchase attempt did not succeed. Check failureReason for more detail. Consider sharing 
+        // this reason with the user to guide their troubleshooting actions.
+        var firstProduct = GetFirstProductInOrder(failedOrder);
+        Debug.Log(string.Format("OnPurchaseFailed: FAIL. Product: '{0}', PurchaseFailureReason: {1}", firstProduct.definition.storeSpecificId, failedOrder.FailureReason));
+        if (failedOrder.FailureReason == PurchaseFailureReason.UserCancelled)
+        {
+            // FirebaseManager.LogEvent("IAP_Cancelled", "message", failureReason.ToString());
+            onLogEvent?.Invoke("IAP_Cancelled", "message", failedOrder.FailureReason.ToString());
+        }
+        else
+        {
+            // FirebaseManager.LogCrashlytics(failureReason.ToString());
+            // FirebaseManager.LogException(new Exception("IAP Purchase Failed"));
+            LogError(failedOrder.FailureReason.ToString());
+            onLogException?.Invoke(new Exception(failedOrder.FailureReason.ToString()));
+        }
+        if (processingPurchase)
+        {
+            onToggleLoading?.Invoke(false);
+            processingPurchase = false;
+        }
+        InvokeCallbackClearNextPurchaseCallback(new PurchaseResultArgs(firstProduct.definition.id, false, "Purchase failed.", failedOrder.FailureReason));
+    }
 
     public static bool CheckProductData(string productId)
     {
@@ -275,7 +303,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     public Product GetProduct(string productId)
     {
         Product product = null;
-        if (IsInitialized())
+        if (_storeController != null)
         {
             product = _storeController.GetProductById(productId);
             if (product != null && product.availableToPurchase)
