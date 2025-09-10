@@ -185,6 +185,10 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
 
         // Create a builder, first passing in a suite of Unity provided stores.
         var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
+        
+        #if UNITY_ANDROID
+        builder.Configure<IGooglePlayConfiguration>().SetDeferredPurchaseListener(OnDeferredPurchase);
+        #endif
 
         // Add a product to sell / restore by way of its identifier, associating the general identifier
         // with its store-specific identifiers.
@@ -523,6 +527,15 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
             Debug.Log($"Product receipt for deferred purchase: {receipt}");
             // Send transaction receipt to server for validation
         }
+        
+        if (m_GooglePlayStoreExtensions.IsPurchasedProductDeferred(args.purchasedProduct))
+        {
+            //The purchase is Deferred.
+            //Therefore, we do not unlock the content or complete the transaction.
+            //ProcessPurchase will be called again once the purchase is Purchased.
+            Debug.Log($"Purchase is deferred: {args.purchasedProduct}");
+            return PurchaseProcessingResult.Pending;
+        }
 
         /*// A consumable product has been purchased by this user.
         if (CompareProductId(productIDDiamond1, args))
@@ -724,6 +737,12 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
         {
             ConfirmPendingPurchase(item.ProductId);
         }
+    }
+    
+    void OnDeferredPurchase(Product product)
+    {
+        Debug.Log($"Purchase of {product.definition.id} is deferred");
+        onToggleLoading?.Invoke(false); //force turn off loading to allow player to continue using the app
     }
 
     static void LogError(string msg)
