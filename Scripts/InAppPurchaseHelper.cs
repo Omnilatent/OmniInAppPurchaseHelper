@@ -741,7 +741,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour, IStoreListener
     
     void OnDeferredPurchase(Product product)
     {
-        Debug.Log($"Purchase of {product.definition.id} is deferred");
+        Debug.Log($"Purchase of {product.definition.id} is deferred. Delegate onNextPurchaseComplete will be cleared to prevent error.");
+        onNextPurchaseComplete = null;
         onToggleLoading?.Invoke(false); //force turn off loading to allow player to continue using the app
     }
 
