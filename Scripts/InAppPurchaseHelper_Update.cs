@@ -38,6 +38,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         // _storeController.OnProductsFetchFailed += OnProductsFetchFailed;
         _storeController.OnPurchasesFetchFailed += OnPurchaseFetchFailed;
         _storeController.OnPurchaseFailed += OnPurchaseFailed;
+        _storeController.OnPurchaseDeferred += OnPurchaseDeferred;
+        _storeController.OnCheckEntitlement += OnCheckEntitlement;
 
         await _storeController.Connect();
         OnStoreConnected();
@@ -89,6 +91,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             };
             storeSpecificIdsByProductId.Add(item.ProductId, storeSpecificIds);
             ValidateProductPayoutSubtype(item);
+            Debug.Log($"Will fetch {item.ProductId}");
         }
 
         //Finally we add everything to the Catalog Provider
@@ -96,18 +99,28 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         ConfigureProductServiceCallbacks();
         m_DefaultCatalogProvider.FetchProducts(UnityIAPServices.DefaultProduct().FetchProductsWithNoRetries);
         
+        /*
         //check if user has purchased any remove ads product
         bool hasRemovedAds = false;
         if (removeAdsProducts.Length == 0)
         {
             Debug.Log("removeAdsProducts doesn't have any products. If you have remove ads product, add it to the list");
         }
-
+        
+        _initialized = true; //has to set this so we can check receipt for remove ad
         foreach (var item in removeAdsProducts)
         {
             foreach (var payout in item.payouts)
             {
+                Debug.Log($"Checking receipt of {item.ProductId}");
                 if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.ProductId))
+                {
+                    hasRemovedAds = true;
+                    break;
+                }
+                
+                Debug.Log($"Checking receipt of {item.AppleAppStoreProductId}");
+                if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.AppleAppStoreProductId))
                 {
                     hasRemovedAds = true;
                     break;
@@ -116,6 +129,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 
             if (hasRemovedAds) break;
         }
+        Debug.Log($"Finished checking receipts");
 
         PlayerPrefs.SetInt(PREF_NO_ADS, hasRemovedAds ? 1 : 0);
         RestorePurchaseHelper.Initialize();
@@ -127,8 +141,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         _storeController.RestoreTransactions(OnPurchaseRestored);
         #endif
         if (debugWillConsumeAllNonConsumable) ConsumeAllPendingPurchases();
-        _initialized = true;
         onInitializeComplete?.Invoke(true);
+        */
     }
 
     void ConfigureProductServiceCallbacks()
@@ -153,7 +167,63 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         return ready;
     }
 
-    private void OnInitialProductsFetched(List<Product> products) { }
+    private void OnInitialProductsFetched(List<Product> products)
+    {
+        string deb = String.Empty;
+        for (int i = 0; i < products.Count; i++)
+        {
+            if (i > 0)
+            {
+                deb += ",";
+            }
+
+            deb += products[i].definition.id;
+        }
+        
+        Debug.Log($"Fetched products: {deb}");
+        
+        //check if user has purchased any remove ads product
+        bool hasRemovedAds = false;
+        if (removeAdsProducts.Length == 0)
+        {
+            Debug.Log("removeAdsProducts doesn't have any products. If you have remove ads product, add it to the list");
+        }
+        _initialized = true; //has to set this so we can check receipt for remove ad
+        foreach (var item in removeAdsProducts)
+        {
+            foreach (var payout in item.payouts)
+            {
+                Debug.Log($"Checking receipt of {item.ProductId}");
+                if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.ProductId))
+                {
+                    hasRemovedAds = true;
+                    break;
+                }
+                
+                Debug.Log($"Checking receipt of {item.AppleAppStoreProductId}");
+                if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.AppleAppStoreProductId))
+                {
+                    hasRemovedAds = true;
+                    break;
+                }
+            }
+
+            if (hasRemovedAds) break;
+        }
+        Debug.Log($"Finished checking receipts");
+
+        PlayerPrefs.SetInt(PREF_NO_ADS, hasRemovedAds ? 1 : 0);
+        RestorePurchaseHelper.Initialize();
+        // IAPProcessor.Init();
+        if (hasRemovedAds && hideBannerOnCheckRemoveAd)
+            IAPEventHandler.HideBannerOnCheckNoAd();
+
+#if !UNITY_IOS //ios require button to restore
+        _storeController.RestoreTransactions(OnPurchaseRestored);
+#endif
+        if (debugWillConsumeAllNonConsumable) ConsumeAllPendingPurchases();
+        onInitializeComplete?.Invoke(true);
+    }
 
     private void OnInitialProductsFetchFailed(ProductFetchFailed fetchFailed)
     {
@@ -269,7 +339,25 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         }
         InvokeCallbackClearNextPurchaseCallback(new PurchaseResultArgs(firstProduct.definition.id, false, "Purchase failed.", failedOrder.FailureReason));
     }
-
+    
+    private void OnPurchaseDeferred(DeferredOrder order)
+    {
+        var firstProduct = GetFirstProductInOrder(order);
+        Debug.Log(string.Format("OnPurchaseDeferred. Product: '{0}'", firstProduct.definition.storeSpecificId));
+        if (processingPurchase)
+        {
+            onToggleLoading?.Invoke(false);
+            processingPurchase = false;
+        }
+        InvokeCallbackClearNextPurchaseCallback(new PurchaseResultArgs(firstProduct.definition.id, false, "Purchase's being deferred."));
+    }
+    
+    private void OnCheckEntitlement(Entitlement entitlement)
+    {
+        Debug.Log("Checking entitlement.");
+        // InvokeCheckReceiptCallback(entitlement);
+    }
+    
     public static bool CheckProductData(string productId)
     {
         IAPProductData productData = GetProductData(productId);

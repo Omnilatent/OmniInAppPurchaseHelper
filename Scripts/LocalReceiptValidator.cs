@@ -51,7 +51,13 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 
     public static bool CheckReceipt(string productId)
     {
-        return CheckReceipt(Instance.GetProduct(productId));
+        var product = Instance.GetProduct(productId);
+        if (product == null)
+        {
+            return false;
+        }
+        
+        return CheckReceipt(product);
     }
 
     static bool CheckReceipt(Product purchasedProduct)
@@ -59,20 +65,32 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         if (!InAppPurchaseHelper.Instance.IsInitialized()) return false;
 
         //If we the validator doesn't support the current store, we assume the purchase is valid
-        if (IsCurrentStoreSupportedByValidator() && purchasedProduct.hasReceipt)
+        if (IsCurrentStoreSupportedByValidator())
         {
-            try
+            if (purchasedProduct.hasReceipt)
             {
-                var result = Instance.m_Validator.Validate(purchasedProduct.receipt);
-                //The validator returns parsed receipts.
-                LogReceipts(result);
+                try
+                {
+                    var result = Instance.m_Validator.Validate(purchasedProduct.receipt);
+                    //The validator returns parsed receipts.
+                    LogReceipts(result);
+                }
+                //If the purchase is deemed invalid, the validator throws an IAPSecurityException.
+                catch (IAPSecurityException reason)
+                {
+                    Debug.Log($"Invalid receipt for '{purchasedProduct.definition.id}': {reason}");
+                    return false;
+                }
             }
-            //If the purchase is deemed invalid, the validator throws an IAPSecurityException.
-            catch (IAPSecurityException reason)
+            else
             {
-                Debug.Log($"Invalid receipt for '{purchasedProduct.definition.id}': {reason}");
                 return false;
             }
+        }
+        else
+        {
+            //Todo: IOS can't do this synchronously, we have to use a cache to check this
+            Instance._storeController.CheckEntitlement(purchasedProduct);
         }
 
         return purchasedProduct.hasReceipt;
