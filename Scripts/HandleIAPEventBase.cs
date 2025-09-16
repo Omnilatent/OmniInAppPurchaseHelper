@@ -39,6 +39,8 @@ namespace Omnilatent.InAppPurchase
         protected abstract void OnToggleLoading(bool isLoading);
 
         protected abstract void ShowErrorPopup(PurchaseResultArgs resultArgs);
+        
+        public abstract void ShowMessagePopup(string message, bool isError = false);
 
         protected abstract void ToggleShowAdOnResume(bool value);
 

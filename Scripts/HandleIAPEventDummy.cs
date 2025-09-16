@@ -1,12 +1,15 @@
+using System;
 using UnityEngine;
 
 namespace Omnilatent.InAppPurchase
 {
     public class HandleIAPEventDummy : HandleIAPEventBase
     {
-        protected override void OnToggleLoading(bool isLoading) { }
+        protected override void OnToggleLoading(bool isLoading) { LogNotImplementedException(); }
 
-        protected override void ShowErrorPopup(PurchaseResultArgs resultArgs) { }
+        protected override void ShowErrorPopup(PurchaseResultArgs resultArgs) { LogNotImplementedException(); }
+
+        public override void ShowMessagePopup(string message, bool isError = false) { LogNotImplementedException(); }
 
         protected override void ToggleShowAdOnResume(bool value) { }
 
@@ -25,6 +28,11 @@ namespace Omnilatent.InAppPurchase
                 restoreMessage = $"Restore Failed. Error: {errorMessage}";
             }
             Debug.Log(restoreMessage);
+        }
+
+        void LogNotImplementedException()
+        {
+            Debug.LogException(new NotImplementedException("Cần thêm component thay thế HandleIAPEventDummy vào InAppPurchaseHelper để xử lý sự kiện từ IAP."));
         }
     }
 }

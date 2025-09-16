@@ -348,6 +348,9 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         return new PendingOrder(cartNew, new OrderInfo(string.Empty, string.Empty, string.Empty));*/
     }
     
+    /// <summary>
+    /// Restore manually using restore purchase button
+    /// </summary>
     public void RestorePurchases()
     {
         // If Purchasing has not yet been set up ...
@@ -381,6 +384,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         {
             onToggleLoading?.Invoke(false);
             OnPurchaseRestored?.Invoke(success, errorMessage);
+            _iapEventHandler.ShowMessagePopup(errorMessage, !success);
         }
     }
 }
