@@ -38,6 +38,33 @@ namespace Omnilatent.InAppPurchase
                 Save();
             }
         }
+        
+        public static void AddProductOwnership(string productId, int value)
+        {
+            if (!data.ownedProducts.ContainsKey(productId))
+            {
+                data.ownedProducts.Add(productId, 0);
+            }
+
+            data.ownedProducts[productId] = data.ownedProducts[productId] + value;
+            Save();
+        }
+
+        public static void SetProductOwnership(string productId, int value)
+        {
+            data.ownedProducts[productId] = value;
+            Save();
+        }
+
+        public static int GetProductOwnership(string productId)
+        {
+            if (data.ownedProducts.TryGetValue(productId, out int value))
+            {
+                return value;
+            }
+
+            return 0;
+        }
 
         static void Load()
         {

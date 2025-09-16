@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Omnilatent.InAppPurchase;
 using UnityEngine;
 using UnityEngine.Purchasing;
 using UnityEngine.Purchasing.Security;
@@ -49,6 +50,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         return true;
     }
 
+    [Obsolete("This does not work correctly on iOS. Use CheckReceipt(string productId, CheckReceiptDelegate onReceiptChecked) instead.")]
     public static bool CheckReceipt(string productId)
     {
         var product = Instance.GetProduct(productId);
@@ -90,10 +92,25 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         else
         {
             //Todo: IOS can't do this synchronously, we have to use a cache to check this
+            Debug.LogError("iOS store do not allow checking receipt synchronously. Use CheckReceiptAsync() for accurate receipt check.");
             Instance._storeController.CheckEntitlement(purchasedProduct);
+            return RestorePurchaseHelper.GetProductOwnership(purchasedProduct.definition.id) > 0;
         }
 
         return purchasedProduct.hasReceipt;
+    }
+
+    public static void CheckReceipt(string productId, CheckReceiptDelegate onReceiptChecked)
+    {
+        var product = Instance.GetProduct(productId);
+        if (product == null)
+        {
+            onReceiptChecked?.Invoke(productId, false);
+            return;
+        }
+        
+        Instance._onNextReceiptCheck = onReceiptChecked;
+        Instance._storeController.CheckEntitlement(product);
     }
 
     static bool IsCurrentStoreSupportedByValidator()
