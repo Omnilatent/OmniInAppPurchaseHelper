@@ -17,9 +17,15 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 
     public delegate void CheckReceiptDelegate(string productId, bool hasReceipt);
     protected CheckReceiptDelegate _onNextReceiptCheck;
-    protected CheckReceiptDelegate _onReceiptCheck;
+    protected CheckReceiptDelegate _onReceiptChecked;
     private string _checkingReceiptProductId;
-    
+
+    public static CheckReceiptDelegate OnReceiptChecked
+    {
+        get => Instance._onNextReceiptCheck;
+        set => Instance._onReceiptChecked = value;
+    }
+
     public async void Initialize()
     {
         // If we have already connected to Purchasing ...
@@ -104,21 +110,22 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         ConfigureProductServiceCallbacks();
         m_DefaultCatalogProvider.FetchProducts(UnityIAPServices.DefaultProduct().FetchProductsWithNoRetries);
         
-        /*
         //check if user has purchased any remove ads product
-        bool hasRemovedAds = false;
+        /*bool hasRemovedAds = false;
         if (removeAdsProducts.Length == 0)
         {
             Debug.Log("removeAdsProducts doesn't have any products. If you have remove ads product, add it to the list");
         }
         
         _initialized = true; //has to set this so we can check receipt for remove ad
+        
+        RestorePurchaseHelper.Initialize();
         foreach (var item in removeAdsProducts)
         {
             foreach (var payout in item.payouts)
             {
                 Debug.Log($"Checking receipt of {item.ProductId}");
-                if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.ProductId))
+                /*if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.ProductId))
                 {
                     hasRemovedAds = true;
                     break;
@@ -129,15 +136,19 @@ public partial class InAppPurchaseHelper : MonoBehaviour
                 {
                     hasRemovedAds = true;
                     break;
+                }/
+                if (payout.PayoutType == PayoutTypeEnum.NoAds && RestorePurchaseHelper.GetProductOwnership(item.ProductId) > 0)
+                {
+                    hasRemovedAds = true;
                 }
             }
-
-            if (hasRemovedAds) break;
+            
+            _storeController.CheckEntitlement(GetProduct(item.ProductId)); //schedule to refresh entitlement
+            // if (hasRemovedAds) break;
         }
         Debug.Log($"Finished checking receipts");
 
         PlayerPrefs.SetInt(PREF_NO_ADS, hasRemovedAds ? 1 : 0);
-        RestorePurchaseHelper.Initialize();
         // IAPProcessor.Init();
         if (hasRemovedAds && hideBannerOnCheckRemoveAd)
             IAPEventHandler.HideBannerOnCheckNoAd();
@@ -146,8 +157,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         _storeController.RestoreTransactions(OnPurchaseRestored);
         #endif
         if (debugWillConsumeAllNonConsumable) ConsumeAllPendingPurchases();
-        onInitializeComplete?.Invoke(true);
-        */
+        onInitializeComplete?.Invoke(true);*/
     }
 
     void ConfigureProductServiceCallbacks()
@@ -174,19 +184,8 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 
     private void OnInitialProductsFetched(List<Product> products)
     {
-        string deb = String.Empty;
-        for (int i = 0; i < products.Count; i++)
-        {
-            if (i > 0)
-            {
-                deb += ",";
-            }
+        // Debug.Log(GetIdListString(products));
 
-            deb += products[i].definition.id;
-        }
-        
-        Debug.Log($"Fetched products: {deb}");
-        
         //check if user has purchased any remove ads product
         bool hasRemovedAds = false;
         if (removeAdsProducts.Length == 0)
@@ -267,6 +266,22 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         onInitializeComplete?.Invoke(true);
     }
 
+    private static string GetIdListString(List<Product> products)
+    {
+        string deb = String.Empty;
+        for (int i = 0; i < products.Count; i++)
+        {
+            if (i > 0)
+            {
+                deb += ",";
+            }
+
+            deb += products[i].definition.id;
+        }
+
+        return deb;
+    }
+
     private void OnInitialProductsFetchFailed(ProductFetchFailed fetchFailed)
     {
         string failedProducts = string.Empty;
@@ -341,6 +356,10 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Called when purchase is successful
+    /// </summary>
+    /// <param name="order"></param>
     private void OnPurchasePending(PendingOrder order)
     {
         onToggleLoading?.Invoke(false);
@@ -532,7 +551,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             Debug.Log("Checking entitlement failed unexpectedly. Product is null.");
             _onNextReceiptCheck?.Invoke(_checkingReceiptProductId, false);
             _onNextReceiptCheck = null;
-            _onReceiptCheck?.Invoke(_checkingReceiptProductId, false);
+            _onReceiptChecked?.Invoke(_checkingReceiptProductId, false);
             return;
         }
         
@@ -554,6 +573,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         RestorePurchaseHelper.SetProductOwnership(productId, hasReceipt ? 1 : 0);
         _onNextReceiptCheck?.Invoke(productId, hasReceipt);
         _onNextReceiptCheck = null;
-        _onReceiptCheck?.Invoke(_checkingReceiptProductId, hasReceipt);
+        _onReceiptChecked?.Invoke(_checkingReceiptProductId, hasReceipt);
+        Debug.Log($"Receipt for '{entitlement.Product}' status: {entitlement.Status}");
     }
 }

@@ -50,7 +50,11 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         return true;
     }
 
-    [Obsolete("This does not work correctly on iOS. Use CheckReceipt(string productId, CheckReceiptDelegate onReceiptChecked) instead.")]
+    /// <summary>
+    /// Check receipt synchronously, this might use cached result on iOS and is not accurate. Use CheckReceipt(string, CheckReceiptDelegate) for proper implementation
+    /// </summary>
+    /// <param name="productId"></param>
+    /// <returns>True if user owns this product</returns>
     public static bool CheckReceipt(string productId)
     {
         var product = Instance.GetProduct(productId);
@@ -91,8 +95,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         }
         else
         {
-            //Todo: IOS can't do this synchronously, we have to use a cache to check this
-            Debug.LogError("iOS store do not allow checking receipt synchronously. Use CheckReceiptAsync() for accurate receipt check.");
+            //iOS does not allow checking receipt synchronously, this will use cached result
             Instance._storeController.CheckEntitlement(purchasedProduct);
             return RestorePurchaseHelper.GetProductOwnership(purchasedProduct.definition.id) > 0;
         }
