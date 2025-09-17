@@ -26,6 +26,18 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         set => Instance._onReceiptChecked = value;
     }
 
+    private ILoggerService _logger;
+
+    ILoggerService Logger
+    {
+        get
+        {
+            if (_logger == null) { _logger = new UnityLogger(); }
+
+            return _logger;
+        }
+    }
+
     public async void Initialize()
     {
         // If we have already connected to Purchasing ...
@@ -64,14 +76,14 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 
     private void OnStoreDisconnected(StoreConnectionFailureDescription failureDescription)
     {
-        Debug.Log("[IAP] Store disconnected:" + failureDescription.Message);
+        Logger.Log("[IAP] Store disconnected:" + failureDescription.Message);
         LogError($"{failureDescription.Message}");
         onInitializeComplete?.Invoke(false);
     }
 
     private void OnPurchaseFetchFailed(PurchasesFetchFailureDescription failureDescription)
     {
-        Debug.Log($"[IAP] Purchase fetch failed. Reason: {failureDescription.FailureReason}. Message: {failureDescription.Message}");
+        Logger.Log($"[IAP] Purchase fetch failed. Reason: {failureDescription.FailureReason}. Message: {failureDescription.Message}");
         LogError($"{failureDescription.FailureReason}:{failureDescription.Message}");
         onInitializeComplete?.Invoke(false);
     }
@@ -79,7 +91,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     protected virtual void OnStoreConnected()
     {
         // Purchasing has succeeded initializing. Collect our Purchasing references.
-        Debug.Log("OnInitialized: PASS");
+        Logger.Log("OnInitialized: PASS");
         InitializeValidator();
     }
 
@@ -102,7 +114,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             };
             storeSpecificIdsByProductId.Add(item.ProductId, storeSpecificIds);
             ValidateProductPayoutSubtype(item);
-            Debug.Log($"Will fetch {item.ProductId}");
+            Logger.Log($"Will fetch {item.ProductId}");
         }
 
         //Finally we add everything to the Catalog Provider
@@ -114,7 +126,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         /*bool hasRemovedAds = false;
         if (removeAdsProducts.Length == 0)
         {
-            Debug.Log("removeAdsProducts doesn't have any products. If you have remove ads product, add it to the list");
+            Logger.Log("removeAdsProducts doesn't have any products. If you have remove ads product, add it to the list");
         }
         
         _initialized = true; //has to set this so we can check receipt for remove ad
@@ -124,14 +136,14 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         {
             foreach (var payout in item.payouts)
             {
-                Debug.Log($"Checking receipt of {item.ProductId}");
+                Logger.Log($"Checking receipt of {item.ProductId}");
                 /*if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.ProductId))
                 {
                     hasRemovedAds = true;
                     break;
                 }
                 
-                Debug.Log($"Checking receipt of {item.AppleAppStoreProductId}");
+                Logger.Log($"Checking receipt of {item.AppleAppStoreProductId}");
                 if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.AppleAppStoreProductId))
                 {
                     hasRemovedAds = true;
@@ -146,7 +158,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             _storeController.CheckEntitlement(GetProduct(item.ProductId)); //schedule to refresh entitlement
             // if (hasRemovedAds) break;
         }
-        Debug.Log($"Finished checking receipts");
+        Logger.Log($"Finished checking receipts");
 
         PlayerPrefs.SetInt(PREF_NO_ADS, hasRemovedAds ? 1 : 0);
         // IAPProcessor.Init();
@@ -175,7 +187,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         bool ready = _storeController != null && _initialized;
         if (!ready && !hasReportedReadyError && logIfNotReady)
         {
-            Debug.Log("IAP Helper not initialized");
+            Logger.Log("IAP Helper not initialized");
             hasReportedReadyError = true;
         }
 
@@ -184,27 +196,27 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 
     private void OnInitialProductsFetched(List<Product> products)
     {
-        // Debug.Log(GetIdListString(products));
+        // Logger.Log(GetIdListString(products));
 
         //check if user has purchased any remove ads product
         bool hasRemovedAds = false;
         if (removeAdsProducts.Length == 0)
         {
-            Debug.Log("removeAdsProducts doesn't have any products. If you have remove ads product, add it to the list");
+            Logger.Log("removeAdsProducts doesn't have any products. If you have remove ads product, add it to the list");
         }
         _initialized = true; //has to set this so we can check receipt for remove ad
         /*foreach (var item in removeAdsProducts)
         {
             foreach (var payout in item.payouts)
             {
-                Debug.Log($"Checking receipt of {item.ProductId}");
+                Logger.Log($"Checking receipt of {item.ProductId}");
                 if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.ProductId))
                 {
                     hasRemovedAds = true;
                     break;
                 }
                 
-                Debug.Log($"Checking receipt of {item.AppleAppStoreProductId}");
+                Logger.Log($"Checking receipt of {item.AppleAppStoreProductId}");
                 if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.AppleAppStoreProductId))
                 {
                     hasRemovedAds = true;
@@ -214,7 +226,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 
             if (hasRemovedAds) break;
         }
-        Debug.Log($"Finished checking receipts");
+        Logger.Log($"Finished checking receipts");
 
         PlayerPrefs.SetInt(PREF_NO_ADS, hasRemovedAds ? 1 : 0);
         RestorePurchaseHelper.Initialize();
@@ -230,14 +242,14 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         {
             foreach (var payout in item.payouts)
             {
-                Debug.Log($"Checking receipt of {item.ProductId}");
+                Logger.Log($"Checking receipt of {item.ProductId}");
                 /*if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.ProductId))
                 {
                     hasRemovedAds = true;
                     break;
                 }
                 
-                Debug.Log($"Checking receipt of {item.AppleAppStoreProductId}");
+                Logger.Log($"Checking receipt of {item.AppleAppStoreProductId}");
                 if (payout.PayoutType == PayoutTypeEnum.NoAds && InAppPurchaseHelper.CheckReceipt(item.AppleAppStoreProductId))
                 {
                     hasRemovedAds = true;
@@ -252,7 +264,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             _storeController.CheckEntitlement(GetProduct(item.ProductId)); //schedule to refresh entitlement
             // if (hasRemovedAds) break;
         }
-        Debug.Log($"Finished checking receipts");
+        Logger.Log($"Finished checking receipts");
 
         PlayerPrefs.SetInt(PREF_NO_ADS, hasRemovedAds ? 1 : 0);
         // IAPProcessor.Init();
@@ -295,7 +307,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             }
         }
 
-        Debug.LogError($"InitialProductsFetchFailed. Reason: {fetchFailed.FailureReason}. Failed to fetch: [{failedProducts}]");
+        Logger.LogError($"InitialProductsFetchFailed. Reason: {fetchFailed.FailureReason}. Failed to fetch: [{failedProducts}]");
     }
 
     #endregion
@@ -334,7 +346,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             onNextPurchaseComplete = purchaseCompleteDelegate;
             if (product != null && product.availableToPurchase)
             {
-                Debug.Log(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
+                Logger.Log(string.Format("Purchasing product asychronously: '{0}'", product.definition.id));
                 onToggleLoading?.Invoke(true);
                 processingPurchase = true;
                 _storeController.PurchaseProduct(product);
@@ -371,7 +383,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(firstProduct.definition.id, true);
         InvokeCallbackClearNextPurchaseCallback(purchaseResultArgs);
 
-        Debug.Log($"Processing Purchase: {firstProduct.definition.id}");
+        Logger.Log($"Processing Purchase: {firstProduct.definition.id}");
         _storeController.ConfirmPurchase(order);
         switch (GetProductData(firstProduct.definition.id).productType)
         {
@@ -387,7 +399,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         // A product purchase attempt did not succeed. Check failureReason for more detail. Consider sharing 
         // this reason with the user to guide their troubleshooting actions.
         var firstProduct = GetFirstProductInOrder(failedOrder);
-        Debug.Log(string.Format("OnPurchaseFailed: FAIL. Product: '{0}', PurchaseFailureReason: {1}", firstProduct.definition.storeSpecificId, failedOrder.FailureReason));
+        Logger.Log(string.Format("OnPurchaseFailed: FAIL. Product: '{0}', PurchaseFailureReason: {1}", firstProduct.definition.storeSpecificId, failedOrder.FailureReason));
         if (failedOrder.FailureReason == PurchaseFailureReason.UserCancelled)
         {
             // FirebaseManager.LogEvent("IAP_Cancelled", "message", failureReason.ToString());
@@ -411,7 +423,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     private void OnPurchaseDeferred(DeferredOrder order)
     {
         var firstProduct = GetFirstProductInOrder(order);
-        Debug.Log(string.Format("OnPurchaseDeferred. Product: '{0}'", firstProduct.definition.storeSpecificId));
+        Logger.Log(string.Format("OnPurchaseDeferred. Product: '{0}'", firstProduct.definition.storeSpecificId));
         if (processingPurchase)
         {
             onToggleLoading?.Invoke(false);
@@ -422,7 +434,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     
     private void OnCheckEntitlement(Entitlement entitlement)
     {
-        Debug.Log("Checking entitlement.");
+        Instance.Logger.Log("Checking entitlement.");
         InvokeCheckReceiptCallback(entitlement);
     }
     
@@ -433,7 +445,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         if (productData == null)
         {
             //invalid product
-            Debug.LogError($"Product data {productId} does not exist in Resources/ProductData folder.");
+            Instance.Logger.LogError($"Product data {productId} does not exist in Resources/ProductData folder.");
             isValidPurchase = false;
         }
 
@@ -464,11 +476,11 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             product = _storeController.GetProductById(productId);
             if (product != null && product.availableToPurchase)
             {
-                //Debug.Log(string.Format("Product: '{0}'", product.definition.id));
+                //Logger.Log(string.Format("Product: '{0}'", product.definition.id));
             }
             else
             {
-                Debug.LogError($"BuyProductID:{productId} FAIL. Not purchasing product, not found or not available for purchase. Check if ProductData with corresponding ID is in Resources/ProductData");
+                Logger.LogError($"BuyProductID:{productId} FAIL. Not purchasing product, not found or not available for purchase. Check if ProductData with corresponding ID is in Resources/ProductData");
             }
         }
         return product;
@@ -497,7 +509,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
                 }
             }
         }
-        Debug.LogWarning($"No pending order found for product {product.definition.id}.");
+        Instance.Logger.LogWarning($"No pending order found for product {product.definition.id}.");
         return null;
         /*var cartItemNew = new CartItem(product);
         var cartNew = new Cart(cartItemNew);
@@ -513,7 +525,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         if (!IsInitialized())
         {
             // ... report the situation and stop restoring. Consider either waiting longer, or retrying initialization.
-            Debug.Log("RestorePurchases FAIL. Not initialized.");
+            Logger.Log("RestorePurchases FAIL. Not initialized.");
             return;
         }
 
@@ -525,7 +537,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         if (isIOS)
         {
             // ... begin restoring purchases
-            Debug.Log("RestorePurchases started ...");
+            Logger.Log("RestorePurchases started ...");
             onToggleLoading?.Invoke(true);
             _storeController.RestoreTransactions(OnRestorePurchase);
         }
@@ -533,7 +545,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         else
         {
             // We are not running on an Apple device. No work is necessary to restore purchases.
-            Debug.Log("RestorePurchases FAIL. Not supported on this platform. Current = " + Application.platform);
+            Logger.Log("RestorePurchases FAIL. Not supported on this platform. Current = " + Application.platform);
         }
         
         void OnRestorePurchase(bool success, string errorMessage)
@@ -548,7 +560,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     {
         if (entitlement.Product == null)
         {
-            Debug.Log("Checking entitlement failed unexpectedly. Product is null.");
+            Logger.Log("Checking entitlement failed unexpectedly. Product is null.");
             _onNextReceiptCheck?.Invoke(_checkingReceiptProductId, false);
             _onNextReceiptCheck = null;
             _onReceiptChecked?.Invoke(_checkingReceiptProductId, false);
@@ -574,6 +586,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         _onNextReceiptCheck?.Invoke(productId, hasReceipt);
         _onNextReceiptCheck = null;
         _onReceiptChecked?.Invoke(_checkingReceiptProductId, hasReceipt);
-        Debug.Log($"Receipt for '{entitlement.Product}' status: {entitlement.Status}");
+        Logger.Log($"Receipt for '{entitlement.Product}' status: {entitlement.Status}");
     }
 }

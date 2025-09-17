@@ -95,6 +95,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         {
             if (_instance == null)
             {
+                Debug.LogWarning($"Failed to find InAppPurchaseHelper, new instance will be created. This might cause the instance to have wrong setting.");
                 _instance = Instantiate(Resources.Load<InAppPurchaseHelper>("OmnilatentRes/InAppPurchaseHelper"));
             }
             return _instance;
@@ -125,6 +126,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         else if (_instance != this)
         {
             Destroy(gameObject);
+            return;
         }
         DontDestroyOnLoad(gameObject);
     }
