@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Omnilatent.InAppPurchase;
 using UnityEngine;
 using UnityEngine.Purchasing;
@@ -97,7 +98,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 
     void FetchProducts()
     {
-        IAPProductData[] products = Resources.LoadAll(dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
+        IAPProductData[] products = GetAllProductsData();
 
         var initialProductsToFetch = new List<ProductDefinition>();
         var storeSpecificIdsByProductId = new Dictionary<string, StoreSpecificIds>();
@@ -170,6 +171,11 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         #endif
         if (debugWillConsumeAllNonConsumable) ConsumeAllPendingPurchases();
         onInitializeComplete?.Invoke(true);*/
+    }
+
+    private static IAPProductData[] GetAllProductsData()
+    {
+        return Resources.LoadAll(dataFolder, typeof(IAPProductData)).Cast<IAPProductData>().ToArray();
     }
 
     void ConfigureProductServiceCallbacks()
@@ -550,11 +556,34 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         
         void OnRestorePurchase(bool success, string errorMessage)
         {
-            onToggleLoading?.Invoke(false);
-            OnPurchaseRestored?.Invoke(success, errorMessage);
-            _iapEventHandler.ShowMessagePopup(errorMessage, !success);
+            RestorePurchaseAllProductsAsync(success, errorMessage);
         }
     }
+
+    async Task RestorePurchaseAllProductsAsync(bool success, string errorMessage)
+    {
+        if (success)
+        {
+            var allProductsData = GetAllProductsData();
+            for (int i = 0; i < allProductsData.Length; i++)
+            {
+                var entitlementStatus = await CheckEntitlementAsync(allProductsData[i].ProductId);
+                if (entitlementStatus == EntitlementStatus.FullyEntitled)
+                {
+                    TryRestorePurchase(new PurchaseResultArgs(allProductsData[i].ProductId, true), false);
+                }
+            }
+        }
+
+        onToggleLoading?.Invoke(false);
+        OnPurchaseRestored?.Invoke(success, errorMessage);
+        string popupMessage = errorMessage;
+        if (success)
+        {
+            popupMessage = "Restore purchase successful. Please restart the game.";
+        }
+        _iapEventHandler.ShowMessagePopup(popupMessage, !success);
+    } 
     
     void InvokeCheckReceiptCallback(Entitlement entitlement)
     {
@@ -573,19 +602,26 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         {
             case EntitlementStatus.NotEntitled:
             case EntitlementStatus.Unknown:
-                hasReceipt = false;
-                break;
             case EntitlementStatus.EntitledButNotFinished:
             case EntitlementStatus.EntitledUntilConsumed:
+                hasReceipt = false;
+                break;
             case EntitlementStatus.FullyEntitled:
                 hasReceipt = true;
                 break;
         }
 
-        RestorePurchaseHelper.SetProductOwnership(productId, hasReceipt ? 1 : 0);
+        // TryRestorePurchase(new PurchaseResultArgs(productId, true), false);
         _onNextReceiptCheck?.Invoke(productId, hasReceipt);
         _onNextReceiptCheck = null;
         _onReceiptChecked?.Invoke(_checkingReceiptProductId, hasReceipt);
+        
+        if (_pendingEntitlementChecks.TryGetValue(productId, out var tcs))
+        {
+            tcs.TrySetResult(entitlement.Status);
+            _pendingEntitlementChecks.Remove(productId);
+        }
+        
         Logger.Log($"Receipt for '{entitlement.Product}' status: {entitlement.Status}");
     }
 }

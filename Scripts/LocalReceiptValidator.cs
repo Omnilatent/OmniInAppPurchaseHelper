@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Omnilatent.InAppPurchase;
 using UnityEngine;
 using UnityEngine.Purchasing;
@@ -10,6 +11,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 {
     protected CrossPlatformValidator m_Validator = null;
     bool m_UseAppleStoreKitTestCertificate;
+    private readonly Dictionary<string, TaskCompletionSource<EntitlementStatus>> _pendingEntitlementChecks = new ();
     
     void InitializeValidator()
     {
@@ -51,10 +53,10 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     }
 
     /// <summary>
-    /// Check receipt synchronously, this might use cached result on iOS and is not accurate. Use CheckReceipt(string, CheckReceiptDelegate) for proper implementation
+    /// Check if user own this product and purchase was restored. On iOS, use CheckEntitlement to check if user has bought this product.
     /// </summary>
     /// <param name="productId"></param>
-    /// <returns>True if user owns this product</returns>
+    /// <returns></returns>
     public static bool CheckReceipt(string productId)
     {
         var product = Instance.GetProduct(productId);
@@ -96,14 +98,19 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         else
         {
             //iOS does not allow checking receipt synchronously, this will use cached result
-            Instance._storeController.CheckEntitlement(purchasedProduct);
+            // Instance._storeController.CheckEntitlement(purchasedProduct);
             return RestorePurchaseHelper.GetProductOwnership(purchasedProduct.definition.id) > 0;
         }
 
         return purchasedProduct.hasReceipt;
     }
 
-    public static void CheckReceipt(string productId, CheckReceiptDelegate onReceiptChecked)
+    /// <summary>
+    /// Callback true if user owns this product. Use RestorePurchaseHelper to check if purchase was restored.
+    /// </summary>
+    /// <param name="productId"></param>
+    /// <param name="onReceiptChecked"></param>
+    public static void CheckEntitlement(string productId, CheckReceiptDelegate onReceiptChecked)
     {
         var product = Instance.GetProduct(productId);
         if (product == null)
@@ -114,6 +121,22 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         
         Instance._onNextReceiptCheck = onReceiptChecked;
         Instance._storeController.CheckEntitlement(product);
+    }
+    
+    public static Task<EntitlementStatus> CheckEntitlementAsync(string productId)
+    {
+        var product = Instance.GetProduct(productId);
+        if (product == null)
+        {
+            return Task.FromResult(EntitlementStatus.Unknown);
+        }
+
+        var tcs = new TaskCompletionSource<EntitlementStatus>();
+
+        // store in dictionary
+        Instance._pendingEntitlementChecks[productId] = tcs;
+        Instance._storeController.CheckEntitlement(product);
+        return tcs.Task;
     }
 
     static bool IsCurrentStoreSupportedByValidator()

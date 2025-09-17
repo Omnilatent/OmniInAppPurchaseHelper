@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using LitJson;
 using Omnilatent.InAppPurchase;
+using UnityEngine.Purchasing;
 
 namespace Omnilatent.InAppPurchase
 {
@@ -94,11 +95,28 @@ namespace Omnilatent.InAppPurchase
 
         public static bool HasRestoredProduct(PurchaseResultArgs resultArgs)
         {
-            if (data.ownedProducts.ContainsKey(resultArgs.productID))
+            return HasRestoredProduct(resultArgs.productID);
+        }
+        
+        public static bool HasRestoredProduct(string productId)
+        {
+            if (GetProductOwnership(productId) <= 0)
             {
-                return true;
+                return false;
             }
-            return false;
+            
+            return true;
+        }
+
+        public static bool IsProductConsumable(ProductType productType)
+        {
+            switch (productType)
+            {
+                case ProductType.NonConsumable:
+                case ProductType.Subscription:
+                    return false;
+                default: return true;
+            }
         }
     }
 }

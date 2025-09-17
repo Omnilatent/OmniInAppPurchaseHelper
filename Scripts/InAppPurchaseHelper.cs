@@ -549,10 +549,10 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             onNextPurchaseComplete.Invoke(resultArgs);
             onNextPurchaseComplete = null;
         }
-        else
+        else if (resultArgs.isSuccess)
         {
             //if restoring purchase, check product ownership before calling persistentOnPurchaseCompleteCallback
-            if (RestorePurchaseHelper.HasRestoredProduct(resultArgs))
+            /*if (RestorePurchaseHelper.HasRestoredProduct(resultArgs))
             {
                 Debug.Log($"Already restored product '{resultArgs.productID}', won't restore again.");
                 PurchaseResultArgs alreadyRestoreResultArgs = new PurchaseResultArgs(resultArgs.productID, false, "This product has already been restored.");
@@ -560,8 +560,43 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             }
             else
             {
+                RestorePurchaseHelper.AddProductOwnership(resultArgs.productID, 1);
+                persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
+            }*/
+
+            TryRestorePurchase(resultArgs, true);
+        }
+        else
+        {
+            persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
+        }
+    }
+
+    static void TryRestorePurchase(PurchaseResultArgs resultArgs, bool callbackIfRestoreFailed)
+    {
+        string productId = resultArgs.productID;
+        if (!RestorePurchaseHelper.IsProductConsumable(GetProductData(resultArgs.productID).productType))
+        {
+            if (RestorePurchaseHelper.HasRestoredProduct(productId))
+            {
+                Debug.Log($"Already restored product '{productId}', won't restore again.");
+                if (callbackIfRestoreFailed)
+                {
+                    PurchaseResultArgs alreadyRestoreResultArgs =
+                        new PurchaseResultArgs(productId, false, "This product has already been restored.");
+                    persistentOnPurchaseCompleteCallback?.Invoke(alreadyRestoreResultArgs);
+                }
+            }
+            else
+            {
+                RestorePurchaseHelper.AddProductOwnership(productId, 1);
                 persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
             }
+        }
+        else
+        {
+            RestorePurchaseHelper.AddProductOwnership(resultArgs.productID, 1);
+            persistentOnPurchaseCompleteCallback?.Invoke(resultArgs);
         }
     }
 

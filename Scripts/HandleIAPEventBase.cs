@@ -14,7 +14,7 @@ namespace Omnilatent.InAppPurchase
         {
             InAppPurchaseHelper.persistentOnPurchaseCompleteCallback += OnPurchaseComplete;
             InAppPurchaseHelper.onPurchaseStart += OnPurchaseStart;
-            InAppPurchaseHelper.onToggleLoading += OnToggleLoading;
+            InAppPurchaseHelper.onToggleLoading += OnLoadingToggled;
             InAppPurchaseHelper.onLogError += LogEvent;
             InAppPurchaseHelper.onLogEvent += LogEvent;
             InAppPurchaseHelper.onLogException += LogException;
@@ -42,6 +42,10 @@ namespace Omnilatent.InAppPurchase
         
         public abstract void ShowMessagePopup(string message, bool isError = false);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value">If true, allow show ad on resume</param>
         protected abstract void ToggleShowAdOnResume(bool value);
 
         protected abstract void OnPurchaseRestored(bool success, string errorMessage);
@@ -135,6 +139,12 @@ namespace Omnilatent.InAppPurchase
                 JacatAdsManager.Instance.HideBanner();
                 #endif
             }
+        }
+
+        protected virtual void OnLoadingToggled(bool loading)
+        {
+            ToggleShowAdOnResume(!loading);
+            OnToggleLoading(loading);
         }
     }
 }
