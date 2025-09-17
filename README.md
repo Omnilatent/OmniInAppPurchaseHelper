@@ -6,9 +6,8 @@ Git repository: https://github.com/Omnilatent/OmniInAppPurchaseHelper
 
 ## SETUP:
 Setup Unity IAP:
-- Follow steps in: https://learn.unity.com/tutorial/unity-iap#:~:text=Adding%20the%20IAP%20Package until you complete the step "Adding the IAP Package". Do not write any script yet.
+- Follow steps in [Getting Started](https://docs.unity3d.com/Packages/com.unity.purchasing@4.13/manual/GettingStarted.html).
 - Setup IAP Receipt Validation Obfuscator following this guide: https://docs.unity3d.com/Manual/UnityIAPValidatingReceipts.html.
-- If you followed Google's guide and get a duplicate aar error, delete the billing 3.0.1 aar file
 
 Prepare IAP Products:
 - Google Play Store:
