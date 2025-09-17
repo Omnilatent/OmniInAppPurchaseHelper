@@ -104,24 +104,6 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 
         return purchasedProduct.hasReceipt;
     }
-
-    /// <summary>
-    /// Callback true if user owns this product. Use RestorePurchaseHelper to check if purchase was restored.
-    /// </summary>
-    /// <param name="productId"></param>
-    /// <param name="onReceiptChecked"></param>
-    public static void CheckEntitlement(string productId, CheckReceiptDelegate onReceiptChecked)
-    {
-        var product = Instance.GetProduct(productId);
-        if (product == null)
-        {
-            onReceiptChecked?.Invoke(productId, false);
-            return;
-        }
-        
-        Instance._onNextReceiptCheck = onReceiptChecked;
-        Instance._storeController.CheckEntitlement(product);
-    }
     
     public static Task<EntitlementStatus> CheckEntitlementAsync(string productId)
     {
