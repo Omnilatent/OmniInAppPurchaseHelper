@@ -15,6 +15,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     protected UnityEngine.Purchasing.CatalogProvider m_DefaultCatalogProvider = new UnityEngine.Purchasing.CatalogProvider();
     protected IPurchaseService m_PurchasingService;
     protected bool _initialized;
+    protected bool _addedStoreControllerCallbacks;
 
     public delegate void CheckReceiptDelegate(string productId, bool hasReceipt);
     protected CheckReceiptDelegate _onNextReceiptCheck;
@@ -57,6 +58,19 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         _storeController = UnityIAPServices.StoreController();
         m_PurchasingService = UnityIAPServices.DefaultPurchase();
 
+        InitStoreControllerCallbacks();
+
+        await _storeController.Connect();
+        OnStoreConnected();
+
+        DebugConsumePurchase.CheckConsumeAllIAPProducts(this);
+        FetchProducts();
+    }
+
+    private void InitStoreControllerCallbacks()
+    {
+        if (_addedStoreControllerCallbacks) { return; } //there is probably a better way to do this using on store disconnected
+
         _storeController.OnPurchasePending += OnPurchasePending;
         _storeController.OnStoreDisconnected += OnStoreDisconnected;
         // _storeController.OnProductsFetchFailed += OnProductsFetchFailed;
@@ -64,15 +78,9 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         _storeController.OnPurchaseFailed += OnPurchaseFailed;
         _storeController.OnPurchaseDeferred += OnPurchaseDeferred;
         _storeController.OnCheckEntitlement += OnCheckEntitlement;
-
-        await _storeController.Connect();
-        OnStoreConnected();
-
         _storeController.OnProductsFetched += OnProductsFetched;
         _storeController.OnPurchasesFetched += OnPurchasesFetched; //this will be invoked after product fetch -> try to restore purchase
-
-        DebugConsumePurchase.CheckConsumeAllIAPProducts(this);
-        FetchProducts();
+        _addedStoreControllerCallbacks = true;
     }
 
     private void OnStoreDisconnected(StoreConnectionFailureDescription failureDescription)
