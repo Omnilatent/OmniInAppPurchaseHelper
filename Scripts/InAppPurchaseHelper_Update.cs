@@ -69,7 +69,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         OnStoreConnected();
 
         _storeController.OnProductsFetched += OnProductsFetched;
-        _storeController.OnPurchasesFetched += OnPurchasesFetched;
+        _storeController.OnPurchasesFetched += OnPurchasesFetched; //this will be invoked after product fetch -> try to restore purchase
 
         DebugConsumePurchase.CheckConsumeAllIAPProducts(this);
         FetchProducts();
@@ -278,8 +278,9 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             IAPEventHandler.HideBannerOnCheckNoAd();
         
 #if !UNITY_IOS //ios require button to restore
-        _storeController.RestoreTransactions(OnPurchaseRestored);
+        // _storeController.RestoreTransactions(OnRestorePurchase);
 #endif
+        _storeController.FetchPurchases();
         if (debugWillConsumeAllNonConsumable) ConsumeAllPendingPurchases();
         onInitializeComplete?.Invoke(true);
     }
@@ -461,12 +462,20 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     void OnProductsFetched(List<Product> products)
     {
         // Handle fetched products  
-        _storeController.FetchPurchases();
+        // _storeController.FetchPurchases();
     }
 
     void OnPurchasesFetched(Orders orders)
     {
-        // Process purchases, e.g. check for entitlements from completed orders  
+        // This is called on initialization to restore purchase
+        foreach (var confirmedOrder in orders.ConfirmedOrders)
+        {
+            string productId = GetFirstProductInOrder(confirmedOrder).definition.id;
+            if (RestorePurchaseHelper.HasRestoredProduct(productId)) { continue; }
+
+            Logger.Log($"Fetched confirmed order: {confirmedOrder.Info}. Restoring product {productId}");
+            InvokeCallbackClearNextPurchaseCallback(new PurchaseResultArgs(productId, true));
+        }
     }
 
     static Product GetFirstProductInOrder(Order order)
@@ -545,28 +554,36 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             // ... begin restoring purchases
             Logger.Log("RestorePurchases started ...");
             onToggleLoading?.Invoke(true);
-            _storeController.RestoreTransactions(OnRestorePurchase);
+            _storeController.RestoreTransactions(OnRestorePurchaseManually);
         }
         // Otherwise ...
         else
         {
             // We are not running on an Apple device. No work is necessary to restore purchases.
             Logger.Log("RestorePurchases FAIL. Not supported on this platform. Current = " + Application.platform);
-        }
-        
-        void OnRestorePurchase(bool success, string errorMessage)
-        {
-            RestorePurchaseAllProductsAsync(success, errorMessage);
+            IAPEventHandler.ShowMessagePopup("All restorable purchases are already active on this device.");
         }
     }
+        
+    void OnRestorePurchaseManually(bool success, string errorMessage)
+    {
+        RestorePurchaseAllProductsAsync(success, errorMessage, true);
+    }
+    
+    void OnRestorePurchase(bool success, string errorMessage)
+    {
+        RestorePurchaseAllProductsAsync(success, errorMessage, false);
+    }
 
-    async Task RestorePurchaseAllProductsAsync(bool success, string errorMessage)
+    async Task RestorePurchaseAllProductsAsync(bool success, string errorMessage, bool showResultPopup)
     {
         if (success)
         {
             var allProductsData = GetAllProductsData();
             for (int i = 0; i < allProductsData.Length; i++)
             {
+                if (RestorePurchaseHelper.HasRestoredProduct(allProductsData[i].ProductId)) { continue; }
+
                 var entitlementStatus = await CheckEntitlementAsync(allProductsData[i].ProductId);
                 if (entitlementStatus == EntitlementStatus.FullyEntitled)
                 {
