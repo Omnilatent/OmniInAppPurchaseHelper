@@ -46,7 +46,12 @@ namespace Omnilatent.InAppPurchase
         /// 
         /// </summary>
         /// <param name="value">If true, allow show ad on resume</param>
-        protected abstract void ToggleShowAdOnResume(bool value);
+        protected virtual void ToggleShowAdOnResume(bool value)
+        {
+            #if JACAT_ADSMANAGER
+            JacatGames.JacatAdsManager.API.JacatAdsManager.Instance.SetShowAdOnResume(value);
+            #endif
+        }
 
         protected abstract void OnPurchaseRestored(bool success, string errorMessage);
 
