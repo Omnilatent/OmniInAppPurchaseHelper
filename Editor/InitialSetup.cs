@@ -15,6 +15,7 @@ namespace Omnilatent.InAppPurchase.EditorNS
         private const string PackageName = "IAP Helper";
         private Toggle _toggleAddInstanceToFirstScene;
         private Toggle _toggleUseOmniSceneManager;
+        private Toggle _toggleDetectLoadingFunction;
         [SerializeField] private bool _waitingPostCompile;
 
         #if !OMNILATENT_IAP_HELPER
@@ -31,6 +32,7 @@ namespace Omnilatent.InAppPurchase.EditorNS
             EditorApplication.delayCall += ShowInstallWindow;
         }
 
+        #region GUI
         [MenuItem("Tools/Omnilatent/IAP Helper/Install...")]
         public static void ShowInstallWindow()
         {
@@ -78,6 +80,13 @@ namespace Omnilatent.InAppPurchase.EditorNS
             StyleToggle(_toggleUseOmniSceneManager);
             root.Add(_toggleAddInstanceToFirstScene);
             root.Add(_toggleUseOmniSceneManager);
+            
+            _toggleDetectLoadingFunction = new Toggle("Detect and implement loading screen function.")
+            {
+                value = true
+            };
+            StyleToggle(_toggleDetectLoadingFunction);
+            root.Add(_toggleDetectLoadingFunction);
 
             Button button = new Button();
             button.style.height = 80;
@@ -116,7 +125,8 @@ namespace Omnilatent.InAppPurchase.EditorNS
                 // labelElement.style.marginLeft = 22;
             }
         }
-
+        #endregion
+        
         private void OnInstall()
         {
             AssetDatabase.importPackageCompleted += OnPackageImported;
@@ -153,10 +163,13 @@ namespace Omnilatent.InAppPurchase.EditorNS
 
             if (_toggleUseOmniSceneManager != null && _toggleUseOmniSceneManager.value)
                 UseOmniSceneManagerMessage();
-
+            
+            if (_toggleDetectLoadingFunction != null && _toggleDetectLoadingFunction.value)
+                DetectAndImplementLoadingFunction();
             Debug.Log("Post-install actions completed.");
         }
 
+        #region Auto Installation
         private void AddInstanceToFirstScene()
         {
             if (EditorBuildSettings.scenes.Length == 0)
@@ -208,66 +221,105 @@ namespace Omnilatent.InAppPurchase.EditorNS
 
         private void UseOmniSceneManagerMessage()
         {
-            // 1. Check if PopupController class exists
-            System.Type popupType = System.Type.GetType("PopupController");
-            string[] guids = AssetDatabase.FindAssets("HandleIAPEvent t:script");
+            const string typeName = "PopupController";
+            const string targetScript = "HandleIAPEvent";
+            const string targetMarker = "#if false //OMNILATENT_SCENEMANAGER_POPUP";
+            const string replacement = "#if true //OMNILATENT_SCENEMANAGER_POPUP";
+
+            // 1. If PopupController doesn't exist, prompt user to open HandleIAPEvent
+            System.Type popupType = System.Type.GetType(typeName);
+            if (popupType == null)
+            {
+                PromptOpenScriptIfTypeMissing(typeName, targetScript, "ShowErrorPopup");
+                return;
+            }
+
+            // 2. If PopupController exists, patch the file
+            ReplaceMarkerInFile(targetScript, targetMarker, replacement);
+        }
+
+        private void DetectAndImplementLoadingFunction()
+        {
+            const string typeName = "LoadingAnywhere";
+            const string targetScript = "HandleIAPEvent";
+            const string targetMarker = "#if false //OMNILATENT_SCENEMANAGER_LOADING";
+            const string replacement = "#if true //OMNILATENT_SCENEMANAGER_LOADING";
+            const string manualFunction = "OnToggleLoading";
+
+            System.Type loadingType = System.Type.GetType(typeName);
+            if (loadingType == null)
+            {
+                PromptOpenScriptIfTypeMissing(typeName, targetScript, manualFunction);
+                return;
+            }
+
+            ReplaceMarkerInFile(targetScript, targetMarker, replacement);
+        }
+        #endregion
+        
+        #region Helper functions
+        private bool ReplaceMarkerInFile(string assetSearchName, string targetMarker, string replacement)
+        {
+            string[] guids = AssetDatabase.FindAssets(assetSearchName + " t:script");
             if (guids == null || guids.Length == 0)
             {
-                Debug.LogError("Could not find HandleIAPEvent script in project.");
-                return;
+                Debug.LogError($"Could not find script '{assetSearchName}' in project.");
+                return false;
             }
 
             string scriptPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-            if (popupType == null)
-            {
-                bool openScript = EditorUtility.DisplayDialog(
-                    "Manual Edit Required",
-                    "PopupController class not found.\n\nYou need to manually implement the ShowErrorPopup function in HandleIAPEvent.\n\nDo you want to open the HandleIAPEvent script now?",
-                    "Open Script",
-                    "Cancel"
-                );
-
-                if (openScript)
-                {
-                    Object scriptAsset = AssetDatabase.LoadAssetAtPath<Object>(scriptPath);
-                    if (scriptAsset != null)
-                    {
-                        int targetLine = FindFunctionLine(scriptPath, "ShowErrorPopup");
-                        if (targetLine > 0)
-                        {
-                            AssetDatabase.OpenAsset(scriptAsset, targetLine);
-                            Debug.Log($"Opened {scriptPath} at line {targetLine} (ShowErrorPopup).");
-                        }
-                        else
-                        {
-                            AssetDatabase.OpenAsset(scriptAsset);
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Could not load HandleIAPEvent script asset.");
-                    }
-                }
-
-                return;
-            }
-
-            // 2. If PopupController exists, auto-patch HandleIAPEvent
             string scriptText = File.ReadAllText(scriptPath);
-
-            const string targetMarker = "#if false //OMNILATENT_SCENEMANAGER_POPUP";
-            const string replacement = "#if true //OMNILATENT_SCENEMANAGER_POPUP";
 
             if (!scriptText.Contains(targetMarker))
             {
                 Debug.LogWarning($"Target marker not found in {scriptPath}: {targetMarker}");
-                return;
+                return false;
             }
 
             scriptText = scriptText.Replace(targetMarker, replacement);
             File.WriteAllText(scriptPath, scriptText);
             AssetDatabase.ImportAsset(scriptPath);
-            Debug.Log($"Patched {Path.GetFileName(scriptPath)}: enabled OMNILATENT_SCENEMANAGER_POPUP block.");
+            Debug.Log($"Patched {Path.GetFileName(scriptPath)}: replaced '{targetMarker}' with '{replacement}'.");
+            return true;
+        }
+
+        private void PromptOpenScriptIfTypeMissing(string typeName, string assetSearchName, string functionName = null)
+        {
+            System.Type type = System.Type.GetType(typeName);
+            string[] guids = AssetDatabase.FindAssets(assetSearchName + " t:script");
+            if (guids == null || guids.Length == 0)
+            {
+                Debug.LogError($"Could not find script '{assetSearchName}' in project.");
+                return;
+            }
+
+            string scriptPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+            Object scriptAsset = AssetDatabase.LoadAssetAtPath<Object>(scriptPath);
+
+            if (type != null)
+                return; // Type exists, no prompt needed
+
+            bool openScript = EditorUtility.DisplayDialog(
+                "Manual Edit Required",
+                $"{typeName} class not found.\n\nYou need to manually implement the {functionName ?? "required function"} in {assetSearchName}.\n\nDo you want to open the script now?",
+                "Open Script",
+                "Cancel"
+            );
+
+            if (openScript && scriptAsset != null)
+            {
+                int targetLine = string.IsNullOrEmpty(functionName) ? -1 : FindFunctionLine(scriptPath, functionName);
+                if (targetLine > 0)
+                {
+                    AssetDatabase.OpenAsset(scriptAsset, targetLine);
+                    Debug.Log($"Opened {scriptPath} at line {targetLine} ({functionName}).");
+                }
+                else
+                {
+                    AssetDatabase.OpenAsset(scriptAsset);
+                    Debug.Log($"Opened {scriptPath} (function '{functionName}' not found).");
+                }
+            }
         }
 
         // Helper to find the line where a function is declared
@@ -294,6 +346,7 @@ namespace Omnilatent.InAppPurchase.EditorNS
 
             return -1;
         }
+        #endregion
 
         // Called whenever scripts reload (EditorWindow auto-deserializes)
         private void OnEnable()
@@ -304,6 +357,7 @@ namespace Omnilatent.InAppPurchase.EditorNS
             }
         }
 
+        #region Symbol
         const string SYMBOL = "OMNILATENT_IAP_HELPER";
 
         public static void InitScriptingDefineSymbol()
@@ -327,5 +381,6 @@ namespace Omnilatent.InAppPurchase.EditorNS
             }
             #endif
         }
+        #endregion
     }
 }
