@@ -94,6 +94,7 @@ namespace Omnilatent.InAppPurchase.EditorNS
         {
             toggle.style.marginTop = 4;
             toggle.style.marginBottom = 4;
+            toggle.style.maxWidth = 400;
 
             // Ensure toggle has enough height for one text line
             toggle.style.minHeight = EditorGUIUtility.singleLineHeight + 4;
@@ -105,15 +106,14 @@ namespace Omnilatent.InAppPurchase.EditorNS
             if (input != null)
             {
                 // Position the checkbox absolutely inside the toggle
-                input.style.position = Position.Absolute;
+                // input.style.position = Position.Absolute;
+                input.style.justifyContent = new StyleEnum<Justify>(Justify.FlexEnd);
             }
 
             if (labelElement != null)
             {
                 // Shift label to the right of checkbox
-                labelElement.style.marginLeft = 22;
-                // labelElement.style.width = 300;
-                // labelElement.style.unityTextAlign = TextAnchor.MiddleLeft;
+                // labelElement.style.marginLeft = 22;
             }
         }
 
@@ -143,7 +143,7 @@ namespace Omnilatent.InAppPurchase.EditorNS
 
             DoPostInstallActions();
         }
-        
+
         private void DoPostInstallActions()
         {
             _waitingPostCompile = false;
@@ -208,8 +208,91 @@ namespace Omnilatent.InAppPurchase.EditorNS
 
         private void UseOmniSceneManagerMessage()
         {
-            // TODO: implement actual logic
-            Debug.Log("UseOmniSceneManagerMessage() called");
+            // 1. Check if PopupController class exists
+            System.Type popupType = System.Type.GetType("PopupController");
+            string[] guids = AssetDatabase.FindAssets("HandleIAPEvent t:script");
+            if (guids == null || guids.Length == 0)
+            {
+                Debug.LogError("Could not find HandleIAPEvent script in project.");
+                return;
+            }
+
+            string scriptPath = AssetDatabase.GUIDToAssetPath(guids[0]);
+            if (popupType == null)
+            {
+                bool openScript = EditorUtility.DisplayDialog(
+                    "Manual Edit Required",
+                    "PopupController class not found.\n\nYou need to manually implement the ShowErrorPopup function in HandleIAPEvent.\n\nDo you want to open the HandleIAPEvent script now?",
+                    "Open Script",
+                    "Cancel"
+                );
+
+                if (openScript)
+                {
+                    Object scriptAsset = AssetDatabase.LoadAssetAtPath<Object>(scriptPath);
+                    if (scriptAsset != null)
+                    {
+                        int targetLine = FindFunctionLine(scriptPath, "ShowErrorPopup");
+                        if (targetLine > 0)
+                        {
+                            AssetDatabase.OpenAsset(scriptAsset, targetLine);
+                            Debug.Log($"Opened {scriptPath} at line {targetLine} (ShowErrorPopup).");
+                        }
+                        else
+                        {
+                            AssetDatabase.OpenAsset(scriptAsset);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Could not load HandleIAPEvent script asset.");
+                    }
+                }
+
+                return;
+            }
+
+            // 2. If PopupController exists, auto-patch HandleIAPEvent
+            string scriptText = File.ReadAllText(scriptPath);
+
+            const string targetMarker = "#if false //OMNILATENT_SCENEMANAGER_POPUP";
+            const string replacement = "#if true //OMNILATENT_SCENEMANAGER_POPUP";
+
+            if (!scriptText.Contains(targetMarker))
+            {
+                Debug.LogWarning($"Target marker not found in {scriptPath}: {targetMarker}");
+                return;
+            }
+
+            scriptText = scriptText.Replace(targetMarker, replacement);
+            File.WriteAllText(scriptPath, scriptText);
+            AssetDatabase.ImportAsset(scriptPath);
+            Debug.Log($"Patched {Path.GetFileName(scriptPath)}: enabled OMNILATENT_SCENEMANAGER_POPUP block.");
+        }
+
+        // Helper to find the line where a function is declared
+        private int FindFunctionLine(string filePath, string functionName)
+        {
+            try
+            {
+                string[] lines = File.ReadAllLines(filePath);
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+                    if (line.Contains(functionName) && line.Contains("("))
+                    {
+                        // Rough heuristic to detect a function definition line
+                        if (line.Contains("void") || line.Contains("public") || line.Contains("private") || line.Contains("protected"))
+                            return i + 1; // +1 because Unity line numbers are 1-based
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Error scanning {filePath}: {ex.Message}");
+            }
+
+            return -1;
         }
 
         // Called whenever scripts reload (EditorWindow auto-deserializes)
