@@ -39,7 +39,12 @@ namespace Omnilatent.InAppPurchase
 
         protected abstract void ShowErrorPopup(PurchaseResultArgs resultArgs);
 
-        protected abstract void ToggleShowAdOnResume(bool value);
+        protected virtual void ToggleShowAdOnResume(bool value)
+        {
+            #if JACAT_ADSMANAGER
+            JacatGames.JacatAdsManager.API.JacatAdsManager.Instance.SetShowAdOnResume(value);
+            #endif
+        }
 
         protected virtual void OnPurchaseStart(string productId)
         {
