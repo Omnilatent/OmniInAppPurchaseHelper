@@ -31,6 +31,7 @@ public class IAPProductData : ScriptableObject
     public int defaultSubscriptionPeriodDays;
 
     public string displayName;
+    public string description;
     public Payout[] payouts = new Payout[] { new Payout() };
 
     Product GetProduct()
