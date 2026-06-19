@@ -126,14 +126,15 @@ namespace Omnilatent.InAppPurchase
         /// <returns>Return true if user has purchased remove ads</returns>
         public virtual bool CheckNoAds()
         {
-            if (PlayerPrefs.GetInt(InAppPurchaseHelper.PREF_NO_ADS, 0) == 1)
+            bool noAds = PlayerPrefs.GetInt(InAppPurchaseHelper.PREF_NO_ADS, 0) == 1;
+            #if JACAT_ADSMANAGER
+            // CanShowAds() should be the opposite of noAds. If they don't match, sync Jacat ads manager.
+            if (JacatAdsManager.Instance.CanShowAds() == noAds)
             {
-                return true;
+                JacatAdsManager.Instance.SetRemoveAd(noAds);
             }
-            else
-            {
-                return false;
-            }
+            #endif
+            return noAds;
         }
 
         public virtual void HideBannerOnCheckNoAd()

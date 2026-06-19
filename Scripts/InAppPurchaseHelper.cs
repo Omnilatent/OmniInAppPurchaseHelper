@@ -618,6 +618,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     /// </summary>
     public static SubscriptionInfo GetSubscriptionInfo(string productID)
     {
+        if (!_instance.IsInitialized()) return null;
         SubscriptionManager subscriptionManager;
         if (!Instance.subscriptionManagers.TryGetValue(productID, out subscriptionManager))
         {

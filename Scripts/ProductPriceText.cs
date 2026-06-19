@@ -6,6 +6,7 @@ using UnityEngine;
 public class ProductPriceText : MonoBehaviour
 {
     [SerializeField] TMP_Text textPrice;
+    [SerializeField] private string _textPriceFormat = "{0}";
     [SerializeField] IAPProductData productData;
 
     private void Start()
@@ -37,7 +38,14 @@ public class ProductPriceText : MonoBehaviour
         string priceText = InAppPurchaseHelper.Instance.GetPriceString(iAPProductData.ProductId);
         if (priceText != null)
         {
-            textPrice.text = priceText;
+            if (string.IsNullOrEmpty(_textPriceFormat))
+            {
+                textPrice.text = priceText;
+            }
+            else
+            {
+                textPrice.text = string.Format(_textPriceFormat, priceText);
+            }
         }
         else
         {
