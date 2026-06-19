@@ -2,6 +2,9 @@ using System;
 #if JACAT_ADSMANAGER
 using JacatGames.JacatAdsManager.API;
 #endif
+#if JACAT_ADSMANAGER_V2
+using JacatGames.JacatAds;
+#endif
 using UnityEngine;
 
 namespace Omnilatent.InAppPurchase

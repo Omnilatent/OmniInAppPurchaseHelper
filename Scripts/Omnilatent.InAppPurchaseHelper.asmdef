@@ -19,7 +19,8 @@
         "Unity.Purchasing",
         "Unity.Purchasing.Security",
         "Unity.Purchasing.SecurityCore",
-        "Unity.Purchasing.SecurityStub"
+        "Unity.Purchasing.SecurityStub",
+        "JacatAds"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
