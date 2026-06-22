@@ -12,6 +12,7 @@ namespace Omnilatent.InAppPurchase
     public abstract class HandleIAPEventBase : MonoBehaviour
     {
         bool hasAddedNoAdsDelegate;
+        private bool _showAdOnResume = true;
 
         protected virtual void Awake()
         {
@@ -33,6 +34,11 @@ namespace Omnilatent.InAppPurchase
                 AdsManager.Instance.noAds += CheckNoAds;
                 #endif
                 hasAddedNoAdsDelegate = true;
+            
+                #if JACAT_ADSMANAGER_V2
+                AdGuard.AddShowRule("removeAds", CheckNoAds);
+                AdGuard.AddShowRule("appResumeAdAfterIap", CanShowAppResumeAd, AdFormat.OpenAd);
+                #endif
             }
             #if JACAT_ADSMANAGER
             JacatAdsManager.Instance.SetRemoveAd(CheckNoAds());
@@ -51,6 +57,7 @@ namespace Omnilatent.InAppPurchase
         /// <param name="value">If true, allow show ad on resume</param>
         protected virtual void ToggleShowAdOnResume(bool value)
         {
+            _showAdOnResume = value;
             #if JACAT_ADSMANAGER
             JacatGames.JacatAdsManager.API.JacatAdsManager.Instance.SetShowAdOnResume(value);
             #endif
@@ -154,6 +161,11 @@ namespace Omnilatent.InAppPurchase
         {
             ToggleShowAdOnResume(!loading);
             OnToggleLoading(loading);
+        }
+        
+        protected virtual bool CanShowAppResumeAd()
+        {
+            return _showAdOnResume;
         }
     }
 }
