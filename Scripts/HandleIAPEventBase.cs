@@ -32,11 +32,11 @@ namespace Omnilatent.InAppPurchase
                 hasAddedNoAdsDelegate = true;
             
                 #if JACAT_ADSMANAGER_V2
-                AdGuard.AddShowRule("removeAds", CanShowAd);
+                AdGuard.AddShowRule("removeAds", CanShowAd, AdGuard.AllExceptRewarded);
                 AdGuard.AddShowRule("appResumeAdAfterIap", CanShowAppResumeAd, AdFormat.OpenAd);
                 #endif
             }
-            #if JACAT_ADSMANAGER
+            #if JACAT_ADSMANAGER || JACAT_ADSMANAGER_V2 
             JacatAdsManager.Instance.SetRemoveAd(CheckNoAds());
             #endif
         }
