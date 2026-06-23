@@ -63,6 +63,10 @@ namespace Omnilatent.InAppPurchase
             #if JACAT_ADSMANAGER
             JacatGames.JacatAdsManager.API.JacatAdsManager.Instance.SetShowAdOnResume(value);
             #endif
+            
+            #if OMNILATENT_ADS_MANAGER
+            Omnilatent.AdsMediation.ShowAdOnAppResume.overrideShowAdOnResume = value;
+            #endif
         }
 
         protected abstract void OnPurchaseRestored(bool success, string errorMessage);
