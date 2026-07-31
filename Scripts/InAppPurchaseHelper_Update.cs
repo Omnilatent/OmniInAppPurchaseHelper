@@ -540,50 +540,87 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     }
     
     /// <summary>
-    /// Restore manually using restore purchase button
+    /// Restore manually using restore purchase button.
+    /// Fire and forget overload kept for backward compatibility, use <see cref="RestorePurchasesAsync"/> to await the result.
     /// </summary>
     public void RestorePurchases()
+    {
+        RestorePurchases(true, true);
+    }
+
+    /// <summary>
+    /// Restore manually using restore purchase button. Fire and forget, use <see cref="RestorePurchasesAsync"/> to await the result.
+    /// </summary>
+    /// <param name="showLoading">Show the loading indicator while restoring.</param>
+    /// <param name="showResultMessage">Show a message popup when restoring finished.</param>
+    public void RestorePurchases(bool showLoading, bool showResultMessage)
+    {
+        _ = RestorePurchasesAsync(showLoading, showResultMessage);
+    }
+
+    /// <summary>
+    /// Restore manually using restore purchase button.
+    /// </summary>
+    /// <param name="showLoading">Show the loading indicator while restoring.</param>
+    /// <param name="showResultMessage">Show a message popup when restoring finished.</param>
+    /// <returns>True if restoring finished successfully, false if it failed or is unavailable.
+    /// On platforms that don't need a manual restore, this returns true without doing any work.</returns>
+    public async Task<bool> RestorePurchasesAsync(bool showLoading = true, bool showResultMessage = true)
     {
         // If Purchasing has not yet been set up ...
         if (!IsInitialized())
         {
             // ... report the situation and stop restoring. Consider either waiting longer, or retrying initialization.
             Logger.Log("RestorePurchases FAIL. Not initialized.");
-            return;
+            if (showResultMessage)
+            {
+                IAPEventHandler.ShowMessagePopup("Restore purchase failed. Please check your internet connection and try again later.", true);
+            }
+
+            return false;
         }
 
-        // If we are running on an Apple device ... 
+        // If we are running on an Apple device ...
         bool isIOS = false;
         #if UNITY_IOS
         isIOS = true;
         #endif
-        if (isIOS)
-        {
-            // ... begin restoring purchases
-            Logger.Log("RestorePurchases started ...");
-            onToggleLoading?.Invoke(true);
-            _storeController.RestoreTransactions(OnRestorePurchaseManually);
-        }
-        // Otherwise ...
-        else
+        if (!isIOS)
         {
             // We are not running on an Apple device. No work is necessary to restore purchases.
             Logger.Log("RestorePurchases FAIL. Not supported on this platform. Current = " + Application.platform);
-            IAPEventHandler.ShowMessagePopup("All restorable purchases are already active on this device.");
+            if (showResultMessage)
+            {
+                IAPEventHandler.ShowMessagePopup("All restorable purchases are already active on this device.");
+            }
+
+            return true;
         }
-    }
-        
-    void OnRestorePurchaseManually(bool success, string errorMessage)
-    {
-        RestorePurchaseAllProductsAsync(success, errorMessage, true);
-    }
-    
-    void OnRestorePurchase(bool success, string errorMessage)
-    {
-        RestorePurchaseAllProductsAsync(success, errorMessage, false);
+
+        // ... begin restoring purchases
+        Logger.Log("RestorePurchases started ...");
+        if (showLoading) { onToggleLoading?.Invoke(true); }
+
+        var restoreResult = await RestoreTransactionsAsync();
+        return await RestorePurchaseAllProductsAsync(restoreResult.success, restoreResult.errorMessage, showResultMessage, showLoading);
     }
 
-    async Task RestorePurchaseAllProductsAsync(bool success, string errorMessage, bool showResultPopup)
+    /// <summary>
+    /// Wrap <see cref="StoreController.RestoreTransactions"/>'s callback into an awaitable task.
+    /// </summary>
+    Task<(bool success, string errorMessage)> RestoreTransactionsAsync()
+    {
+        var tcs = new TaskCompletionSource<(bool success, string errorMessage)>();
+        _storeController.RestoreTransactions((success, errorMessage) => tcs.TrySetResult((success, errorMessage)));
+        return tcs.Task;
+    }
+
+    void OnRestorePurchase(bool success, string errorMessage)
+    {
+        _ = RestorePurchaseAllProductsAsync(success, errorMessage, false);
+    }
+
+    async Task<bool> RestorePurchaseAllProductsAsync(bool success, string errorMessage, bool showResultPopup, bool showLoading = true)
     {
         if (success)
         {
@@ -600,15 +637,17 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             }
         }
 
-        onToggleLoading?.Invoke(false);
+        if (showLoading) { onToggleLoading?.Invoke(false); }
+
         OnPurchaseRestored?.Invoke(success, errorMessage);
-        string popupMessage = errorMessage;
-        if (success)
+        if (showResultPopup)
         {
-            popupMessage = "Restore purchase successful. Please restart the game.";
+            string popupMessage = success ? "Restore purchase successful. Please restart the game." : errorMessage;
+            IAPEventHandler.ShowMessagePopup(popupMessage, !success);
         }
-        _iapEventHandler.ShowMessagePopup(popupMessage, !success);
-    } 
+
+        return success;
+    }
     
     void InvokeCheckReceiptCallback(Entitlement entitlement)
     {
