@@ -476,6 +476,12 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     void OnPurchasesFetched(Orders orders)
     {
         // This is called on initialization to restore purchase
+        if (!AutoRestorePurchaseOnLaunch)
+        {
+            Logger.Log($"Auto restore purchase on launch is off, skipping {orders.ConfirmedOrders.Count} confirmed order(s). Use the restore purchase button to restore manually.");
+            return;
+        }
+
         foreach (var confirmedOrder in orders.ConfirmedOrders)
         {
             string productId = GetFirstProductInOrder(confirmedOrder).definition.id;

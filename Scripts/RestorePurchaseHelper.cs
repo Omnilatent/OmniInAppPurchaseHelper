@@ -91,6 +91,21 @@ namespace Omnilatent.InAppPurchase
         }
 
         public static string DataToString() { return JsonMapper.ToJson(data); }
+
+        /// <summary>
+        /// Forget every owned product recorded on this device. Intended for testing:
+        /// combined with <see cref="DebugAutoRestore"/> it gives a tester a device with no purchase benefits.
+        /// Does not refund or consume anything on the store, and does not reset game save data
+        /// that a payout already wrote.
+        /// </summary>
+        public static void ClearOwnershipData()
+        {
+            data = new Data();
+            Save();
+            PlayerPrefs.SetInt(InAppPurchaseHelper.PREF_NO_ADS, 0);
+            PlayerPrefs.Save();
+            Debug.Log("Cleared local IAP ownership data.");
+        }
         #endregion
 
         public static bool HasRestoredProduct(PurchaseResultArgs resultArgs)

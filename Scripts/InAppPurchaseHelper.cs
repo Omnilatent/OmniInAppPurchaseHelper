@@ -43,6 +43,9 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     [SerializeField] bool initializeAutomatically = true;
     [SerializeField] bool initializeUnityService = true;
 
+    [Tooltip("Grant payouts of previously owned products automatically on launch. Turn off to let testers play without their past purchases being restored. The manual Restore Purchases button still works either way.")]
+    [SerializeField] bool autoRestorePurchaseOnLaunch = true;
+
     [Obsolete("Use _storeController instead", true)]
     private static IStoreController m_StoreController;          // The Unity Purchasing system.
     [Obsolete("", true)]
@@ -661,6 +664,15 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     public void ToggleDebugConsumeAllNonConsumable()
     {
         debugWillConsumeAllNonConsumable = true;
+    }
+
+    /// <summary>
+    /// True if owned products found on the store should have their payouts granted automatically on launch.
+    /// The inspector value can be overridden at runtime in debug builds, see <see cref="DebugAutoRestore"/>.
+    /// </summary>
+    public bool AutoRestorePurchaseOnLaunch
+    {
+        get => autoRestorePurchaseOnLaunch && DebugAutoRestore.IsAutoRestoreAllowed();
     }
 
     void ConsumeAllPendingPurchases()
