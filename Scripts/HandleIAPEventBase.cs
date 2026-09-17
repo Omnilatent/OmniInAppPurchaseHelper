@@ -88,6 +88,12 @@ namespace Omnilatent.InAppPurchase
             else
             {
                 PayoutPurchase(resultArgs);
+
+                // Raise ở đây chứ không phải trong PayoutPurchase: subclass hay override
+                // PayoutPurchase mà không gọi base, seam sẽ chết theo.
+                // Project nào đang tự Invoke onPayoutSuccess trong PayoutPurchase của mình thì
+                // phải bỏ dòng đó đi, nếu không sẽ callback hai lần.
+                InAppPurchaseHelper.onPayoutSuccess?.Invoke(resultArgs);
             }
         }
 

@@ -1,3 +1,8 @@
+## 2.5.4
+Changes
+- `HandleIAPEventBase.OnPurchaseComplete` giờ raise `InAppPurchaseHelper.onPayoutSuccess` sau khi `PayoutPurchase` chạy xong. Trước đây delegate này được khai báo nhưng không chỗ nào trong thư viện gọi, mỗi project phải tự Invoke.
+- Breaking: project nào đang tự `InAppPurchaseHelper.onPayoutSuccess?.Invoke(args)` trong `PayoutPurchase` của mình thì phải bỏ dòng đó đi, nếu không subscriber sẽ nhận callback hai lần.
+
 ## 2.5.3
 New Features
 - Implemented Jacat Ads Manager.
