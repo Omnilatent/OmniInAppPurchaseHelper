@@ -71,6 +71,13 @@ public partial class InAppPurchaseHelper : MonoBehaviour
     /// </summary>
     public static Action<bool> onToggleLoading;
 
+    /// <summary>Analytics event names reported through <see cref="onLogEvent"/>/<see cref="onLogError"/>.</summary>
+    public const string EVENT_IAP_SUCCESS = "IAP_Success";
+    public const string EVENT_IAP_CANCELLED = "IAP_Cancelled";
+    public const string EVENT_IAP_ERROR = "IAP_Error";
+    public const string PARAM_PRODUCT_ID = "product_id";
+    public const string PARAM_MESSAGE = "message";
+
     public delegate void LogEventDelegate(string eventName, string eventParameter, string message);
     public static LogEventDelegate onLogEvent;
     public static Action<System.Exception> onLogException;
@@ -512,7 +519,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         if (failureReason == PurchaseFailureReason.UserCancelled)
         {
             // FirebaseManager.LogEvent("IAP_Cancelled", "message", failureReason.ToString());
-            onLogEvent?.Invoke("IAP_Cancelled", "message", failureReason.ToString());
+            onLogEvent?.Invoke(EVENT_IAP_CANCELLED, PARAM_MESSAGE, failureReason.ToString());
         }
         else
         {
@@ -680,7 +687,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
             msg = msg.Substring(0, 39);
         }
 
-        onLogError?.Invoke("IAP_Error", "message", msg);
+        onLogError?.Invoke(EVENT_IAP_ERROR, PARAM_MESSAGE, msg);
         // FirebaseManager.LogEvent("IAP_Error", "message", msg);
     }
 }

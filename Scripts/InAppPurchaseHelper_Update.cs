@@ -395,6 +395,9 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         var firstProduct = GetFirstProductInOrder(order);
         bool isValidPurchase = CheckProductData(firstProduct.definition.id);
 
+        // Logged before the callbacks so the event still goes out if a listener throws.
+        onLogEvent?.Invoke(EVENT_IAP_SUCCESS, PARAM_PRODUCT_ID, firstProduct.definition.id);
+
         PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(firstProduct.definition.id, true);
         InvokeCallbackClearNextPurchaseCallback(purchaseResultArgs);
 
@@ -418,7 +421,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         if (failedOrder.FailureReason == PurchaseFailureReason.UserCancelled)
         {
             // FirebaseManager.LogEvent("IAP_Cancelled", "message", failureReason.ToString());
-            onLogEvent?.Invoke("IAP_Cancelled", "message", failedOrder.FailureReason.ToString());
+            onLogEvent?.Invoke(EVENT_IAP_CANCELLED, PARAM_MESSAGE, failedOrder.FailureReason.ToString());
         }
         else
         {
