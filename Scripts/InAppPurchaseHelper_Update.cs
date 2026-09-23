@@ -397,6 +397,7 @@ public partial class InAppPurchaseHelper : MonoBehaviour
 
         // Logged before the callbacks so the event still goes out if a listener throws.
         onLogEvent?.Invoke(EVENT_IAP_SUCCESS, PARAM_PRODUCT_ID, firstProduct.definition.id);
+        LogAppleTransaction(order);
 
         PurchaseResultArgs purchaseResultArgs = new PurchaseResultArgs(firstProduct.definition.id, true);
         InvokeCallbackClearNextPurchaseCallback(purchaseResultArgs);
@@ -412,6 +413,35 @@ public partial class InAppPurchaseHelper : MonoBehaviour
         }
     }
     
+    /// <summary>
+    /// Unity IAP 5 uses StoreKit 2 on iOS, which Firebase Analytics doesn't track automatically.
+    /// Manually log the transaction so Firebase records the purchase and its revenue.
+    /// See https://firebase.google.com/docs/analytics/unity/measure-in-app-purchases
+    /// </summary>
+    void LogAppleTransaction(PendingOrder order)
+    {
+#if UNITY_IOS && !UNITY_EDITOR
+#if FIREBASE_ANALYTICS_13_12_0_OR_NEWER
+        if (!FirebaseManager.FirebaseReady)
+        {
+            Logger.LogWarning("Firebase is not ready, skip logging Apple transaction.");
+            return;
+        }
+
+        string transactionId = order.Info.Apple.OriginalTransactionID;
+        Firebase.Analytics.FirebaseAnalytics.LogAppleTransactionAsync(transactionId).ContinueWith(task =>
+        {
+            if (task.IsFaulted)
+            {
+                Debug.LogException(task.Exception);
+            }
+        });
+#else
+        Logger.LogWarning("Firebase Unity SDK 13.12.0+ is required to log StoreKit 2 transactions. Purchase revenue won't be tracked.");
+#endif
+#endif
+    }
+
     public void OnPurchaseFailed(FailedOrder failedOrder)
     {
         // A product purchase attempt did not succeed. Check failureReason for more detail. Consider sharing 

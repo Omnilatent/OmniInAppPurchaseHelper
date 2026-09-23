@@ -29,6 +29,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.google.firebase.analytics",
+            "expression": "13.12.0",
+            "define": "FIREBASE_ANALYTICS_13_12_0_OR_NEWER"
+        }
+    ],
     "noEngineReferences": false
 }
